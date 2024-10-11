@@ -18,8 +18,9 @@ namespace Store.Business.Services
         public OrderModel Get(int id)
         {
             var order = _orderRepository.Get(id);
+            var orderModel = _mapper.Map<OrderModel>(order);
 
-            return _mapper.Map<OrderModel>(order);
+            return orderModel;
         }
     }
 }

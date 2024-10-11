@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder.Extensions;
+using Store.Api.MapperConfigurations;
 
 namespace Store.Api
 {
@@ -14,6 +14,9 @@ namespace Store.Api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddAutoMapper(typeof(ViewModelsMappingProfile));
+
             string connectionString = builder.Configuration.GetConnectionString("StoreDB");
 
             Business.Configuration.Configure(builder.Services, connectionString);

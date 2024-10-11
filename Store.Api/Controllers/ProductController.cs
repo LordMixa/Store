@@ -11,6 +11,7 @@ namespace Store.Api.Controllers
     {
         private readonly IMapper _mapper;
         private readonly IProductService _productService;
+
         public ProductController(IProductService productService, IMapper mapper)
         {
             _productService = productService;
@@ -21,8 +22,9 @@ namespace Store.Api.Controllers
         public ProductViewModel Get(int id)
         {
             var product = _productService.Get(id);
+            var productViewModel = _mapper.Map<ProductViewModel>(product);
 
-            return _mapper.Map<ProductViewModel>(product);
+            return productViewModel;
 
         }
     }

@@ -7,7 +7,7 @@ namespace Store.Data.Repositories
     {
         public Order Get(int id)
         {
-            return new Order();
+            return new Order() { Id = 23, Price = 482.34 };
         }
     }
 }

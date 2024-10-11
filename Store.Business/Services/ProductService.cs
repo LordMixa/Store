@@ -18,8 +18,9 @@ namespace Store.Business.Services
         public ProductModel Get(int id)
         {
             var product = _productRepository.Get(id);
+            var productModel = _mapper.Map<ProductModel>(product);
 
-            return _mapper.Map<ProductModel>(product);
+            return productModel;
         }
     }
 }

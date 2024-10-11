@@ -11,6 +11,7 @@ namespace Store.Api.Controllers
     {
         private readonly IOrderService _orderService;
         private readonly IMapper _mapper;
+
         public OrderController(IOrderService orderService, IMapper mapper)
         {
             _orderService = orderService;
@@ -21,8 +22,9 @@ namespace Store.Api.Controllers
         public OrderViewModel Get(int id)
         {
             var order = _orderService.Get(id);
+            var orderViewModel = _mapper.Map<OrderViewModel>(order);
 
-            return _mapper.Map<OrderViewModel>(order);
+            return orderViewModel;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Store.Business
         {
             Data.Configuration.Configure(serviceCollection, connectionString);
 
-            serviceCollection.AddAutoMapper(typeof(StoreProfile));
+            serviceCollection.AddAutoMapper(typeof(ModelsMappingProfile));
 
             serviceCollection.AddTransient<IOrderService, OrderService>();
             serviceCollection.AddTransient<IProductService, ProductService>();

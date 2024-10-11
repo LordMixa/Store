@@ -2,14 +2,12 @@
 using Store.Business.Models.OrderModels;
 using Store.Business.Models.ProductModels;
 using Store.Data.Entities;
-using Store.ViewModels.ViewModels.OrderViewModels;
-using Store.ViewModels.ViewModels.ProductViewModels;
 
 namespace Store.Business.MapperConfigurations
 {
-    public class StoreProfile : Profile
+    public class ModelsMappingProfile : Profile
     {
-        public StoreProfile() 
+        public ModelsMappingProfile() 
         {
             CreateMap<Order, OrderModel>()
                 .ForMember(dest => dest.PriceEuro, opt => opt.MapFrom(src => src.Price / 1.2))
@@ -17,10 +15,6 @@ namespace Store.Business.MapperConfigurations
                 .ForMember(dest => dest.PriceUsd, opt => opt.MapFrom(src => src.Price));
 
             CreateMap<Product, ProductModel>();
-
-            CreateMap<ProductModel, ProductViewModel>();
-            CreateMap<OrderModel, OrderViewModel>();
-
         }
     }
 }
