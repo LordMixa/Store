@@ -51,7 +51,8 @@ namespace Store.Api.Controllers
         public async Task<ActionResult<bool>> Update(int id, [FromBody] BookRequestModel request)
         {
             var bookModel = _mapper.Map<BookCreateModel>(request);
-            var isSuccess = await _bookService.UpdateAsync(bookModel, id);
+            bookModel.Id = id;
+            var isSuccess = await _bookService.UpdateAsync(bookModel);
 
             return isSuccess;
 

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Store.Api.Models.Requests;
+using Store.Business.Models.BookModels;
 using Store.Business.Models.OrderModels;
 using Store.Business.Services.Interfaces;
 using Store.ViewModels.ViewModels.OrderViewModels;
@@ -50,7 +51,8 @@ namespace Store.Api.Controllers
         public async Task<ActionResult<bool>> Update(int id, [FromBody] OrderRequestModel request)
         {
             var orderModel = _mapper.Map<OrderCreateModel>(request);
-            var isSuccess = await _orderService.UpdateAsync(orderModel, id);
+            orderModel.Id = id;
+            var isSuccess = await _orderService.UpdateAsync(orderModel);
 
             return isSuccess;
 

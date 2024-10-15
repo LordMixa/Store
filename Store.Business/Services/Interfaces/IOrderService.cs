@@ -8,6 +8,6 @@ namespace Store.Business.Services.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<OrderModel> GetAsync(int id);
         Task<IEnumerable<OrderModel>> GetAsync();
-        Task<bool> UpdateAsync(OrderCreateModel orderModel, int id);
+        Task<bool> UpdateAsync(OrderCreateModel orderModel);
     }
 }

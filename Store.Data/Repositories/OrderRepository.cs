@@ -2,7 +2,7 @@
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 using System.Data;
-using static System.Reflection.Metadata.BlobBuilder;
+using System.Text;
 
 namespace Store.Data.Repositories
 {
@@ -22,20 +22,20 @@ namespace Store.Data.Repositories
             {
                 using (var command = sqlConnection.CreateCommand())
                 {
-                    command.CommandText = @"
+                    string query = @"
                     SELECT 
                         o.Id,
                         o.Sum,
                         o.Date,
                         u.Id AS UserId,
-                        u.FirstName AS UserFirstName,
-                        u.LastName AS UserLastName,
-                        u.Email AS UserEmail,
-                        oi.Id AS OrderItemId,
-                        oi.Amount AS OrderItemAmount,
-                        oi.Price AS OrderItemPrice,
+                        u.FirstName,
+                        u.LastName,
+                        u.Email,
+                        oi.Id AS OrderItemsId,
+                        oi.Amount,
+                        oi.Price,
                         b.Id AS BookId,
-                        b.Title AS BookTitle
+                        b.Title
                     FROM 
                         Orders o
                     JOIN 
@@ -46,6 +46,7 @@ namespace Store.Data.Repositories
                         Books b ON oi.BookId = b.Id
                     WHERE 
                         o.Id = @Id;";
+                    command.CommandText = query;
                     var parameter = command.CreateParameter();
                     parameter.ParameterName = "@Id";
                     parameter.Value = id;
@@ -53,43 +54,7 @@ namespace Store.Data.Repositories
 
                     await sqlConnection.OpenAsync();
 
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        if (await reader.ReadAsync())
-                        {
-                            order.Id = reader.GetInt32(0);
-                            order.Sum = reader.GetDecimal(1);
-                            order.Date = DateOnly.FromDateTime(reader.GetDateTime(2));
-                            order.User = new User
-                            {
-                                Id = reader.GetInt32(3),
-                                FirstName = reader.GetString(4),
-                                LastName = reader.GetString(5),
-                                Email = reader.GetString(6)
-                            };
-                            order.OrderItems = new List<OrderItems>();
-
-                            do
-                            {
-                                if (!reader.IsDBNull(7))
-                                {
-                                    var orderItem = new OrderItems
-                                    {
-                                        Id = reader.GetInt32(7),
-                                        Amount = reader.GetInt32(8),
-                                        Price = reader.GetDecimal(9),
-                                        Book = new Book
-                                        {
-                                            Id = reader.GetInt32(10),
-                                            Title = reader.GetString(11)
-                                        }
-                                    };
-                                    order.OrderItems.Add(orderItem);
-                                }
-
-                            } while (await reader.ReadAsync());
-                        }
-                    }
+                    await GetOrderSql(command, order);
                 }
             }
             return order;
@@ -102,20 +67,20 @@ namespace Store.Data.Repositories
             {
                 using (var command = sqlConnection.CreateCommand())
                 {
-                    command.CommandText = @"
+                    string query = @"
                     SELECT 
                         o.Id,
                         o.Sum,
                         o.Date,
                         u.Id AS UserId,
-                        u.FirstName AS UserFirstName,
-                        u.LastName AS UserLastName,
-                        u.Email AS UserEmail,
-                        oi.Id AS OrderItemId,
-                        oi.Amount AS OrderItemAmount,
-                        oi.Price AS OrderItemPrice,
+                        u.FirstName,
+                        u.LastName,
+                        u.Email,
+                        oi.Id AS OrderItemsId,
+                        oi.Amount,
+                        oi.Price,
                         b.Id AS BookId,
-                        b.Title AS BookTitle
+                        b.Title
                     FROM 
                         Orders o
                     JOIN 
@@ -124,55 +89,83 @@ namespace Store.Data.Repositories
                         OrderItems oi ON oi.OrderId = o.Id
                     LEFT JOIN 
                         Books b ON oi.BookId = b.Id";
+                    command.CommandText = query;
 
                     await sqlConnection.OpenAsync();
 
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            var orderId = reader.GetInt32(0);
-                            var order = orders.FirstOrDefault(o => o.Id == orderId);
+                    await GetOrdersSql(command, orders);
 
-                            if (order == null)
-                            {
-                                order = new Order
-                                {
-                                    Id = reader.GetInt32(0),
-                                    Sum = reader.GetDecimal(1),
-                                    Date = DateOnly.FromDateTime(reader.GetDateTime(2)),
-                                    User = new User
-                                    {
-                                        Id = reader.GetInt32(3),
-                                        FirstName = reader.GetString(4),
-                                        LastName = reader.GetString(5),
-                                        Email = reader.GetString(6)
-                                    },
-                                    OrderItems = new List<OrderItems>()
-                                };
-                                orders.Add(order);
-                            }
-
-                            if (!reader.IsDBNull(7))
-                            {
-                                var orderItem = new OrderItems
-                                {
-                                    Id = reader.GetInt32(7),
-                                    Amount = reader.GetInt32(8),
-                                    Price = reader.GetDecimal(9),
-                                    Book = new Book
-                                    {
-                                        Id = reader.GetInt32(10),
-                                        Title = reader.GetString(11)
-                                    }
-                                };
-                                order.OrderItems.Add(orderItem);
-                            }
-                        }
-                    }
                 }
             }
             return orders;
+        }
+        private async Task GetOrderSql(SqlCommand command, Order order)
+        {
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    ReadOrder(reader, order);
+                    ReadUser(reader, order);
+
+                    order.OrderItems = new List<OrderItems>();
+                    ReadOrderItems(reader, order);
+                }
+            }
+        }
+        private async Task GetOrdersSql(SqlCommand command, List<Order> orders)
+        {
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    var orderId = reader.GetInt32(nameof(Order.Id));
+                    var order = orders.FirstOrDefault(o => o.Id == orderId);
+
+                    if (order == null)
+                    {
+                        order = new Order();
+                        ReadOrder(reader, order);
+                        ReadUser(reader, order);
+                        order.OrderItems = new List<OrderItems>();
+                        ReadOrderItems(reader, order);
+
+                        orders.Add(order);
+                    }                   
+                }
+            }
+        }
+        private void ReadOrder(SqlDataReader reader, Order order)
+        {
+            order.Id = reader.GetInt32(nameof(Order.Id));
+            order.Sum = reader.GetDecimal(nameof(Order.Sum));
+            order.Date = DateOnly.FromDateTime(reader.GetDateTime(nameof(Order.Date)));
+        }
+        private void ReadUser(SqlDataReader reader, Order order)
+        {
+            order.User = new User();
+            order.User.Id = reader.GetInt32("UserId");
+            order.User.FirstName = reader.GetString(nameof(User.FirstName));
+            order.User.LastName = reader.GetString(nameof(User.LastName));
+            order.User.Email = reader.GetString(nameof(User.Email));
+        }
+        private void ReadOrderItems(SqlDataReader reader, Order order)
+        {
+            if (!reader.IsDBNull("OrderItemsId"))
+            {
+                var orderItem = new OrderItems
+                {
+                    Id = reader.GetInt32("OrderItemsId"),
+                    Amount = reader.GetInt32(nameof(OrderItems.Amount)),
+                    Price = reader.GetDecimal(nameof(OrderItems.Price)),
+                    Book = new Book
+                    {
+                        Id = reader.GetInt32("BookId"),
+                        Title = reader.GetString(nameof(Book.Title))
+                    }
+                };
+                order.OrderItems.Add(orderItem);
+            }
         }
         public async Task<int> CreateAsync(Order order)
         {
@@ -189,39 +182,23 @@ namespace Store.Data.Repositories
                         using (var command = sqlConnection.CreateCommand())
                         {
                             command.Transaction = transaction;
-                            command.CommandText = @"
+                            var query = new StringBuilder(@"
                                 INSERT INTO Orders (Sum, Date, UserId) 
                                 OUTPUT INSERTED.Id 
-                                VALUES (@Sum, @Date, @UserId)";
+                                VALUES (@Sum, @Date, @UserId)");
 
                             command.Parameters.Add(new SqlParameter("@Sum", order.Sum));
                             command.Parameters.Add(new SqlParameter("@Date", order.Date));
                             command.Parameters.Add(new SqlParameter("@UserId", 1));
 
+                            if (order.OrderItems != null)
+                                AddOrderItems(query, command, order);
+
+                            command.CommandText = query.ToString();
+
                             orderId = (int)await command.ExecuteScalarAsync();
+                            transaction.Commit();
                         }
-                        if (order.OrderItems != null)
-                        {
-                            foreach (var orderitems in order.OrderItems)
-                            {
-                                using (var command = sqlConnection.CreateCommand())
-                                {
-                                    command.Transaction = transaction;
-                                    command.CommandText = @"
-                                    INSERT INTO OrderItems (Amount, Price, OrderId, BookId) 
-                                    VALUES (@Amount, @Price, @OrderId, @BookId)";
-
-                                    command.Parameters.Add(new SqlParameter("@Amount", orderitems.Amount));
-                                    command.Parameters.Add(new SqlParameter("@Price", orderitems.Price));
-                                    command.Parameters.Add(new SqlParameter("@OrderId", order.Id));
-                                    command.Parameters.Add(new SqlParameter("@BookId", orderitems.Book.Id));
-
-                                    await command.ExecuteNonQueryAsync();
-                                }
-                            }
-                        }
-
-                        transaction.Commit();
                     }
                     catch
                     {
@@ -230,10 +207,22 @@ namespace Store.Data.Repositories
                     }
                 }
             }
-
             return orderId;
         }
-        public async Task<bool> UpdateAsync(Order order, int id)
+        private void AddOrderItems(StringBuilder query, SqlCommand command, Order order)
+        {
+            foreach (var orderitems in order.OrderItems)
+            {
+                query.Append(@"
+                    INSERT INTO OrderItems (Amount, Price, OrderId, BookId) 
+                    VALUES (@Amount, @Price, @OrderId, @BookId)");
+                command.Parameters.Add(new SqlParameter("@Amount", orderitems.Amount));
+                command.Parameters.Add(new SqlParameter("@Price", orderitems.Price));
+                command.Parameters.Add(new SqlParameter("@OrderId", order.Id));
+                command.Parameters.Add(new SqlParameter("@BookId", orderitems.Book.Id));
+            }
+        }
+        public async Task<bool> UpdateAsync(Order order)
         {
             if (_dbConnection is SqlConnection sqlConnection)
             {
@@ -246,53 +235,28 @@ namespace Store.Data.Repositories
                         using (var command = sqlConnection.CreateCommand())
                         {
                             command.Transaction = transaction;
-                            command.CommandText = @"
+                            var query = new StringBuilder(@"
                                 UPDATE Orders
                                 SET Sum = @Sum,
                                     Date = @Date,
                                     UserId = @UserId
-                                WHERE Id = @Id";
+                                WHERE Id = @Id");
 
                             command.Parameters.Add(new SqlParameter("@Sum", order.Sum));
                             command.Parameters.Add(new SqlParameter("@Date", order.Date.ToDateTime(new TimeOnly(0, 0))));
                             command.Parameters.Add(new SqlParameter("@UserId", 2));
-                            command.Parameters.Add(new SqlParameter("@Id", id));
+                            command.Parameters.Add(new SqlParameter("@Id", order.Id));
+
+                            if (order.OrderItems != null)
+                                AddOrderItems(query, command, order);
+
+                            command.CommandText = query.ToString();
 
                             await command.ExecuteNonQueryAsync();
+
+                            transaction.Commit();
+                            return true;
                         }
-
-                        using (var command = sqlConnection.CreateCommand())
-                        {
-                            command.Transaction = transaction;
-                            command.CommandText = @"
-                                DELETE FROM OrderItems
-                                WHERE OrderId = @OrderId";
-
-                            command.Parameters.Add(new SqlParameter("@OrderId", id));
-                            await command.ExecuteNonQueryAsync();
-                        }
-                        if (order.OrderItems != null)
-                        {
-                            foreach (var orderItems in order.OrderItems)
-                            {
-                                using (var command = sqlConnection.CreateCommand())
-                                {
-                                    command.Transaction = transaction;
-                                    command.CommandText = @"
-                                    INSERT INTO OrderItems (BookId, OrderId, Amount, Price)
-                                    VALUES (@BookId, @OrderId, @Amount, @Price)";
-
-                                    command.Parameters.Add(new SqlParameter("@BookId", orderItems.Book.Id));
-                                    command.Parameters.Add(new SqlParameter("@OrderId", id));
-                                    command.Parameters.Add(new SqlParameter("@Amount", orderItems.Amount));
-                                    command.Parameters.Add(new SqlParameter("@Price", orderItems.Price));
-
-                                    await command.ExecuteNonQueryAsync();
-                                }
-                            }
-                        }
-                        transaction.Commit();
-                        return true;
                     }
                     catch
                     {
@@ -316,20 +280,10 @@ namespace Store.Data.Repositories
                         using (var command = sqlConnection.CreateCommand())
                         {
                             command.Transaction = transaction;
-                            command.CommandText = @"
-                                DELETE FROM OrderItems
-                                WHERE OrderId = @OrderId";
-
-                            command.Parameters.Add(new SqlParameter("@OrderId", id));
-                            await command.ExecuteNonQueryAsync();
-                        }
-
-                        using (var command = sqlConnection.CreateCommand())
-                        {
-                            command.Transaction = transaction;
-                            command.CommandText = @"
+                            string query = @"
                                 DELETE FROM Orders
                                 WHERE Id = @Id";
+                            command.CommandText = query;
 
                             command.Parameters.Add(new SqlParameter("@Id", id));
                             var affectedRows = await command.ExecuteNonQueryAsync();
@@ -353,7 +307,6 @@ namespace Store.Data.Repositories
                     }
                 }
             }
-
             return false;
         }
     }

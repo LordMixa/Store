@@ -37,18 +37,18 @@ namespace Store.Business.Services
 
             return id;
         }
-        public async Task<bool> UpdateAsync(OrderCreateModel orderModel, int id)
+        public async Task<bool> UpdateAsync(OrderCreateModel orderModel)
         {
             var order = _mapper.Map<Order>(orderModel);
-            var isSucces = await _orderRepository.UpdateAsync(order, id);
+            var isSuccess = await _orderRepository.UpdateAsync(order);
 
-            return isSucces;
+            return isSuccess;
         }
         public async Task<bool> DeleteAsync(int id)
         {
-            var isSucces = await _orderRepository.DeleteAsync(id);
+            var isSuccess = await _orderRepository.DeleteAsync(id);
 
-            return isSucces;
+            return isSuccess;
         }
     }
 }

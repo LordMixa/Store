@@ -37,18 +37,18 @@ namespace Store.Business.Services
 
             return id;
         }
-        public async Task<bool> UpdateAsync(BookCreateModel bookModel, int id)
+        public async Task<bool> UpdateAsync(BookCreateModel bookModel)
         {
             var book = _mapper.Map<Book>(bookModel);
-            var isSucces = await _bookRepository.UpdateAsync(book, id);
+            var isSuccess = await _bookRepository.UpdateAsync(book);
 
-            return isSucces;
+            return isSuccess;
         }
         public async Task<bool> DeleteAsync(int id)
         {
-            var isSucces = await _bookRepository.DeleteAsync(id);
+            var isSuccess = await _bookRepository.DeleteAsync(id);
 
-            return isSucces;
+            return isSuccess;
         }
     }
 }

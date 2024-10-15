@@ -7,7 +7,7 @@ namespace Store.Data.Repositories.Interfaces
         Task<Book> GetAsync(int id);
         Task<IEnumerable<Book>> GetAsync();
         Task<int> CreateAsync(Book book);
-        Task<bool> UpdateAsync(Book book, int id);
+        Task<bool> UpdateAsync(Book book);
         Task<bool> DeleteAsync(int id);
     }
 }

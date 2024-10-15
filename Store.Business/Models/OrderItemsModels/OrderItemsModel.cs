@@ -3,12 +3,12 @@ using Store.Business.Models.OrderModels;
 
 namespace Store.Business.Models.OrderItemsModels
 {
-    public class OrderItemsModel
+    public record OrderItemsModel
     {
-        public int Id { get; set; }
-        public int Amount { get; set; }
-        public decimal Price { get; set; }
-        public OrderModel Order { get; set; }
-        public BookModel Book { get; set; }
+        public int Id { get; init; }
+        public int Amount { get; init; }
+        public decimal Price { get; init; }
+        public OrderModel Order { get; init; }
+        public BookModel Book { get; init; }
     }
 }

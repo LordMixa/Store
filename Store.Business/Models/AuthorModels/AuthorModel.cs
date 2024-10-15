@@ -2,12 +2,12 @@
 
 namespace Store.Business.Models.AuthorModels
 {
-    public class AuthorModel
+    public record AuthorModel
     {
-        public int Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Biography { get; set; }
-        public IEnumerable<BookModel> Books { get; set; }
+        public int Id { get; init; }
+        public string FirstName { get; init; }
+        public string LastName { get; init; }
+        public string Biography { get; init; }
+        public IEnumerable<BookModel> Books { get; init; }
     }
 }

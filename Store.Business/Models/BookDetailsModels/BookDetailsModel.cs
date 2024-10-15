@@ -2,12 +2,12 @@
 
 namespace Store.Business.Models.BookDetailsModels
 {
-    public class BookDetailsModel
+    public record BookDetailsModel
     {
-        public int Id { get; set; }
-        public int NumberOfPages { get; set; }
-        public string Language { get; set; }
-        public BookModel Book { get; set; }
-        public string PublishingHouse { get; set; }
+        public int Id { get; init; }
+        public int NumberOfPages { get; init; }
+        public string Language { get; init; }
+        public BookModel Book { get; init; }
+        public string PublishingHouse { get; init; }
     }
 }

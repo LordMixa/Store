@@ -7,7 +7,7 @@ namespace Store.Data.Repositories.Interfaces
         Task<Order> GetAsync(int id);
         Task<IEnumerable<Order>> GetAsync();
         Task<int> CreateAsync(Order order);
-        Task<bool> UpdateAsync(Order order, int id);
+        Task<bool> UpdateAsync(Order order);
         Task<bool> DeleteAsync(int id);
     }
 }
