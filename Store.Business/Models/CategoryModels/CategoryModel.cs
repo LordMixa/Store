@@ -1,6 +1,6 @@
-﻿namespace Store.Business.Models.ProductModels
+﻿namespace Store.Business.Models.CategoryModels
 {
-    public class ProductModel
+    public class CategoryModel
     {
         public int Id { get; set; }
         public string Name { get; set; }

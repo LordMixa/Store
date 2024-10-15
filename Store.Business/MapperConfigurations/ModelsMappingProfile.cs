@@ -1,7 +1,12 @@
 ﻿using AutoMapper;
 using Store.Business.Models.OrderModels;
-using Store.Business.Models.ProductModels;
+using Store.Business.Models.BookModels;
 using Store.Data.Entities;
+using Store.Business.Models.OrderItemsModels;
+using Store.Business.Models.UserModels;
+using Store.Business.Models.CategoryModels;
+using Store.Business.Models.AuthorModels;
+using Store.Business.Models.BookDetailsModels;
 
 namespace Store.Business.MapperConfigurations
 {
@@ -9,12 +14,17 @@ namespace Store.Business.MapperConfigurations
     {
         public ModelsMappingProfile() 
         {
-            CreateMap<Order, OrderModel>()
-                .ForMember(dest => dest.PriceEuro, opt => opt.MapFrom(src => src.Price / 1.2))
-                .ForMember(dest => dest.PriceUah, opt => opt.MapFrom(src => src.Price * 41))
-                .ForMember(dest => dest.PriceUsd, opt => opt.MapFrom(src => src.Price));
+            CreateMap<Order, OrderModel>();
+            CreateMap<Book, BookModel>();
+            CreateMap<OrderItems, OrderItemsModel>();
+            CreateMap<User, UserModel>();
+            CreateMap<Category, CategoryModel>();
+            CreateMap<Author, AuthorModel>();
+            CreateMap<BookDetails, BookDetailsModel>();
 
-            CreateMap<Product, ProductModel>();
+
+            CreateMap<BookCreateModel, Book>();
+            CreateMap<OrderCreateModel, Order>();
         }
     }
 }

@@ -1,11 +1,9 @@
 ﻿namespace Store.ViewModels.ViewModels.OrderViewModels
 {
-    public class OrderViewModel
+    public record OrderViewModel
     {
-        public int Id { get; set; }
-        public double PriceUsd { get; set; }
-        public double PriceUah { get; set; }
-        public double PriceEuro { get; set; }
-
+        public int Id { get; init; }
+        public decimal Sum { get; init; }
+        public DateOnly Date { get; init; }
     }
 }

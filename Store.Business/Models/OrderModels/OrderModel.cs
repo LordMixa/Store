@@ -1,10 +1,15 @@
-﻿namespace Store.Business.Models.OrderModels
+﻿using Store.Business.Models.OrderItemsModels;
+using Store.Business.Models.UserModels;
+
+namespace Store.Business.Models.OrderModels
 {
     public class OrderModel
     {
         public int Id { get; set; }
-        public double PriceUsd { get; set; }
-        public double PriceUah { get; set; }
-        public double PriceEuro { get; set; }
+        public decimal Sum { get; set; }
+        public DateOnly Date { get; set; }
+        //public UserModel User { get; set; }
+        //public List<OrderItemsModel> OrderItems { get; set; }
+
     }
 }

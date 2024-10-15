@@ -1,6 +1,6 @@
-﻿namespace Store.ViewModels.ViewModels.ProductViewModels
+﻿namespace Store.Data.Entities
 {
-    public class ProductViewModel
+    public class Category
     {
         public int Id { get; set; }
         public string Name { get; set; }

@@ -14,7 +14,7 @@ namespace Store.Business
             serviceCollection.AddAutoMapper(typeof(ModelsMappingProfile));
 
             serviceCollection.AddTransient<IOrderService, OrderService>();
-            serviceCollection.AddTransient<IProductService, ProductService>();
+            serviceCollection.AddTransient<IBookService, BookService>();
         }
     }
 }
