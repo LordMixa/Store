@@ -1,8 +1,8 @@
 ﻿using Microsoft.Data.SqlClient;
+using Store.Data.Dtos;
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 using System.Data;
-using System.Net;
 using System.Text;
 
 namespace Store.Data.Repositories
@@ -15,14 +15,12 @@ namespace Store.Data.Repositories
         {
             _dbConnection = dbConnection;
         }
+
         public async Task<Book> GetAsync(int id)
         {
-            Book book = new Book();
             if (_dbConnection is SqlConnection sqlConnection)
             {
-                using (var command = sqlConnection.CreateCommand())
-                {
-                    string query = @"
+                string query = @"
                     SELECT 
                         b.Id,
                         b.Title,
@@ -47,6 +45,9 @@ namespace Store.Data.Repositories
                         Categories c ON bc.CategoryId = c.Id
                     WHERE 
                         b.Id = @Id";
+
+                using (var command = sqlConnection.CreateCommand())
+                {
                     command.CommandText = query;
                     var parameter = command.CreateParameter();
                     parameter.ParameterName = "@Id";
@@ -55,20 +56,18 @@ namespace Store.Data.Repositories
 
                     await sqlConnection.OpenAsync();
 
-                    await ReadBookSql(command, book);
+                    var book = await ReadBookSql(command);
+                    return book;
                 }
             }
-            return book;
+            return null;
         }
-        public async Task<IEnumerable<Book>> GetAsync()
-        {
-            var books = new List<Book>();
 
+        public async Task<IEnumerable<BookDto>> GetAsync()
+        {
             if (_dbConnection is SqlConnection sqlConnection)
             {
-                using (var command = sqlConnection.CreateCommand())
-                {
-                    string query = @"
+                string query = @"
                     SELECT 
                         b.Id,
                         b.Title,
@@ -91,88 +90,21 @@ namespace Store.Data.Repositories
                         BookCategory bc ON b.Id = bc.BookId
                     LEFT JOIN 
                         Categories c ON bc.CategoryId = c.Id";
+
+                using (var command = sqlConnection.CreateCommand())
+                {
                     command.CommandText = query;
 
                     await sqlConnection.OpenAsync();
 
-                    await ReadBooksSql(command, books);
+                    var books = await ReadBooksSql(command);
+
+                    return books;
                 }
             }
+            return null;
+        }
 
-            return books;
-        }
-        private async Task ReadBookSql(SqlCommand command, Book book)
-        {
-            book.Authors = new List<Author>();
-            book.Categories = new List<Category>();
-
-            using (var reader = await command.ExecuteReaderAsync())
-            {
-                while (await reader.ReadAsync())
-                {
-                    ReadBook(reader, book);
-                    ReadAuthors(reader, book);
-                    ReadCategories(reader, book);
-                }
-            }
-        }
-        private async Task ReadBooksSql(SqlCommand command, List<Book> books)
-        {
-            using (var reader = await command.ExecuteReaderAsync())
-            {
-                while (await reader.ReadAsync())
-                {
-                    var bookId = reader.GetInt32(nameof(Book.Id));
-                    var book = books.FirstOrDefault(b => b.Id == bookId);
-                    if (book == null)
-                    {
-                        book = new Book();
-                        ReadBook(reader, book);
-                        book.Authors = new List<Author>();
-                        book.Categories = new List<Category>();
-
-                        ReadAuthors(reader, book);
-                        ReadCategories(reader, book);
-
-                        books.Add(book);
-                    }
-                }
-            }
-        }
-        private void ReadBook(SqlDataReader reader, Book book)
-        {
-            book.Id = reader.GetInt32(nameof(Book.Id));
-            book.Title = reader.GetString(nameof(Book.Title));
-            book.Price = reader.GetDecimal(nameof(Book.Price));
-            book.DateOfPublication = DateOnly.FromDateTime(reader.GetDateTime(nameof(Book.DateOfPublication)));
-            book.Description = reader.GetString(nameof(Book.Description));
-        }
-        private void ReadAuthors(SqlDataReader reader, Book book)
-        {
-            if (!reader.IsDBNull("AuthorId") && !book.Authors.Any(a => a.Id == reader.GetInt32("AuthorId")))
-            {
-                var author = new Author
-                {
-                    Id = reader.GetInt32("AuthorId"),
-                    FirstName = reader.GetString(nameof(Author.FirstName)),
-                    LastName = reader.GetString(nameof(Author.LastName)),
-                    Biography = reader.GetString(nameof(Author.Biography)),
-                };
-                book.Authors.Add(author);
-            }
-        }
-        private void ReadCategories(SqlDataReader reader, Book book)
-        {
-            if (!reader.IsDBNull("CategoryId") && !book.Categories.Any(c => c.Id == reader.GetInt32(reader.GetOrdinal("CategoryId"))))
-            {
-                var category = new Category
-                {
-                    Id = reader.GetInt32("CategoryId"),
-                    Name = reader.GetString("CategoryName")
-                };
-                book.Categories.Add(category);
-            }
-        }
         public async Task<int> CreateAsync(Book book)
         {
             int bookId = default;
@@ -181,6 +113,11 @@ namespace Store.Data.Repositories
             {
                 await sqlConnection.OpenAsync();
 
+                var query = new StringBuilder(@"
+                                INSERT INTO Books (Title, Price, DateOfPublication, Description) 
+                                OUTPUT INSERTED.Id 
+                                VALUES (@Title, @Price, @DateOfPublication, @Description)");
+
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
                     try
@@ -188,10 +125,6 @@ namespace Store.Data.Repositories
                         using (var command = sqlConnection.CreateCommand())
                         {
                             command.Transaction = transaction;
-                            var query = new StringBuilder(@"
-                                INSERT INTO Books (Title, Price, DateOfPublication, Description) 
-                                OUTPUT INSERTED.Id 
-                                VALUES (@Title, @Price, @DateOfPublication, @Description)");
 
                             command.Parameters.Add(new SqlParameter("@Title", book.Title));
                             command.Parameters.Add(new SqlParameter("@Price", book.Price));
@@ -220,11 +153,20 @@ namespace Store.Data.Repositories
 
             return bookId;
         }
+
         public async Task<bool> UpdateAsync(Book book)
         {
             if (_dbConnection is SqlConnection sqlConnection)
             {
                 await sqlConnection.OpenAsync();
+
+                var query = new StringBuilder(@"
+                                UPDATE Books
+                                SET Title = @Title,
+                                    Price = @Price,
+                                    DateOfPublication = @DateOfPublication,
+                                    Description = @Description
+                                WHERE Id = @Id");
 
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
@@ -233,13 +175,6 @@ namespace Store.Data.Repositories
                         using (var command = sqlConnection.CreateCommand())
                         {
                             command.Transaction = transaction;
-                            var query = new StringBuilder(@"
-                                UPDATE Books
-                                SET Title = @Title,
-                                    Price = @Price,
-                                    DateOfPublication = @DateOfPublication,
-                                    Description = @Description
-                                WHERE Id = @Id");
 
                             command.Parameters.Add(new SqlParameter("@Title", book.Title));
                             command.Parameters.Add(new SqlParameter("@Price", book.Price));
@@ -267,36 +202,19 @@ namespace Store.Data.Repositories
                     }
                 }
             }
+
             return false;
         }
-        private void AddAuthors(StringBuilder query, SqlCommand command, Book book)
-        {
-            foreach (var author in book.Authors)
-            {
-                query.Append(@"
-                    INSERT INTO BookAuthor (BookId, AuthorId) 
-                    VALUES (@BookId, @AuthorId)");
-                command.Parameters.Add(new SqlParameter("@BookId", book.Id));
-                command.Parameters.Add(new SqlParameter("@AuthorId", author.Id));
-            }
-        }
-        private void AddCategories(StringBuilder query, SqlCommand command, Book book)
-        {
-            foreach (var category in book.Categories)
-            {
-                query.Append(@"
-                    INSERT INTO BookCategory (BookId, CategoryId) 
-                    VALUES (@BookId, @CategoryId)");
 
-                command.Parameters.Add(new SqlParameter("@BookId", book.Id));
-                command.Parameters.Add(new SqlParameter("@CategoryId", category.Id));
-            }
-        }
         public async Task<bool> DeleteAsync(int id)
         {
             if (_dbConnection is SqlConnection sqlConnection)
             {
                 await sqlConnection.OpenAsync();
+
+                string query = @"
+                                DELETE FROM Books
+                                WHERE Id = @Id";
 
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
@@ -305,9 +223,6 @@ namespace Store.Data.Repositories
                         using (var command = sqlConnection.CreateCommand())
                         {
                             command.Transaction = transaction;
-                            string query = @"
-                                DELETE FROM Books
-                                WHERE Id = @Id";
 
                             command.CommandText = query;
                             command.Parameters.Add(new SqlParameter("@Id", id));
@@ -334,6 +249,121 @@ namespace Store.Data.Repositories
             }
 
             return false;
+        }
+
+        private async Task<Book> ReadBookSql(SqlCommand command)
+        {
+            var book = new Book();
+
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    ReadBook(reader, book);
+
+                    if (!reader.IsDBNull("AuthorId") && !book.Authors.Any(a => a.Id == reader.GetInt32("AuthorId")))
+                        book.Authors = ReadAuthors(reader);
+                    if (!reader.IsDBNull("CategoryId") && !book.Categories.Any(c => c.Id == reader.GetInt32(reader.GetOrdinal("CategoryId"))))
+                        book.Categories = ReadCategories(reader);
+                }
+            }
+            return book;
+        }
+
+        private async Task<List<BookDto>> ReadBooksSql(SqlCommand command)
+        {
+            var bookDtos = new List<BookDto>();
+
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    var bookDto = new BookDto
+                    {
+                        Id = reader.GetInt32(nameof(BookDto.Id)),
+                        Title = reader.GetString(nameof(BookDto.Title)),
+                        DateOfPublication = DateOnly.FromDateTime(reader.GetDateTime(nameof(BookDto.DateOfPublication))),
+                        Price = reader.GetDecimal(nameof(BookDto.Price)),
+                        Description = reader.GetString(nameof(BookDto.Description)),
+
+                        AuthorId = reader.IsDBNull(reader.GetOrdinal(nameof(BookDto.AuthorId))) ? 0 : reader.GetInt32(nameof(BookDto.AuthorId)),
+                        FirstName = reader.IsDBNull(reader.GetOrdinal(nameof(BookDto.FirstName))) ? string.Empty : reader.GetString(nameof(BookDto.FirstName)),
+                        LastName = reader.IsDBNull(reader.GetOrdinal(nameof(BookDto.LastName))) ? string.Empty : reader.GetString(nameof(BookDto.LastName)),
+                        Biography = reader.IsDBNull(reader.GetOrdinal(nameof(BookDto.Biography))) ? string.Empty : reader.GetString(nameof(BookDto.Biography)),
+
+                        CategoryId = reader.IsDBNull(reader.GetOrdinal(nameof(BookDto.CategoryId))) ? 0 : reader.GetInt32(nameof(BookDto.CategoryId)),
+                        CategoryName = reader.IsDBNull(reader.GetOrdinal(nameof(BookDto.CategoryName))) ? string.Empty : reader.GetString(nameof(BookDto.CategoryName))
+                    };
+
+                    bookDtos.Add(bookDto);
+                }
+            }
+           
+            return bookDtos;
+        }
+
+        private void ReadBook(SqlDataReader reader, Book book)
+        {
+            book.Id = reader.GetInt32(nameof(Book.Id));
+            book.Title = reader.GetString(nameof(Book.Title));
+            book.Price = reader.GetDecimal(nameof(Book.Price));
+            book.DateOfPublication = DateOnly.FromDateTime(reader.GetDateTime(nameof(Book.DateOfPublication)));
+            book.Description = reader.GetString(nameof(Book.Description));
+        }
+
+        private List<Author> ReadAuthors(SqlDataReader reader)
+        {
+            var authors = new List<Author>();
+            var author = new Author
+            {
+                Id = reader.GetInt32("AuthorId"),
+                FirstName = reader.GetString(nameof(Author.FirstName)),
+                LastName = reader.GetString(nameof(Author.LastName)),
+                Biography = reader.GetString(nameof(Author.Biography)),
+            };
+
+            authors.Add(author);
+
+            return authors;
+        }
+
+        private List<Category> ReadCategories(SqlDataReader reader)
+        {
+            var categories = new List<Category>();
+            var category = new Category
+            {
+                Id = reader.GetInt32("CategoryId"),
+                Name = reader.GetString("CategoryName")
+            };
+
+            categories.Add(category);
+
+            return categories;
+        }
+
+        private void AddAuthors(StringBuilder query, SqlCommand command, Book book)
+        {
+            foreach (var author in book.Authors)
+            {
+                query.Append(@"
+                    INSERT INTO BookAuthor (BookId, AuthorId) 
+                    VALUES (@BookId, @AuthorId)");
+                command.Parameters.Add(new SqlParameter("@BookId", book.Id));
+                command.Parameters.Add(new SqlParameter("@AuthorId", author.Id));
+            }
+        }
+
+        private void AddCategories(StringBuilder query, SqlCommand command, Book book)
+        {
+            foreach (var category in book.Categories)
+            {
+                query.Append(@"
+                    INSERT INTO BookCategory (BookId, CategoryId) 
+                    VALUES (@BookId, @CategoryId)");
+
+                command.Parameters.Add(new SqlParameter("@BookId", book.Id));
+                command.Parameters.Add(new SqlParameter("@CategoryId", category.Id));
+            }
         }
     }
 }

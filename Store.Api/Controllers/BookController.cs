@@ -21,48 +21,48 @@ namespace Store.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<BookViewModel> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             var book = await _bookService.GetAsync(id);
             var bookViewModel = _mapper.Map<BookViewModel>(book);
 
-            return bookViewModel;
-
+            return Ok(bookViewModel);
         }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BookViewModel>>> Get()
+        public async Task<IActionResult> Get()
         {
             var books = await _bookService.GetAsync();
             var bookViewModels = _mapper.Map<List<BookViewModel>>(books);
 
-            return bookViewModels;
-
+            return Ok(bookViewModels);
         }
+
         [HttpPost]
-        public async Task<ActionResult<int>> Create([FromBody] BookRequestModel request)
+        public async Task<IActionResult> Create([FromBody] BookRequestModel request)
         {
             var bookModel = _mapper.Map<BookCreateModel>(request);
             int id = await _bookService.CreateAsync(bookModel);
 
-            return id;
-
+            return Ok(id);
         }
+
         [HttpPut("{id}")]
-        public async Task<ActionResult<bool>> Update(int id, [FromBody] BookRequestModel request)
+        public async Task<IActionResult> Update(int id, [FromBody] BookRequestModel request)
         {
             var bookModel = _mapper.Map<BookCreateModel>(request);
             bookModel.Id = id;
             var isSuccess = await _bookService.UpdateAsync(bookModel);
 
-            return isSuccess;
-
+            return Ok(isSuccess);
         }
+
         [HttpDelete("{id}")]
-        public async Task<ActionResult<bool>> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var isSuccess = await _bookService.DeleteAsync(id);
 
-            return isSuccess;
+            return Ok(isSuccess);
         }
     }
 }

@@ -6,6 +6,6 @@
         public decimal Sum { get; set; }
         public DateOnly Date {  get; set; }
         public User User { get; set; }
-        public List<OrderItems> OrderItems { get; set; }
+        public IEnumerable<OrderItems> OrderItems { get; set; } = new List<OrderItems>();
     }
 }

@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using Store.Business.Models.AuthorModels;
 using Store.Business.Models.BookModels;
+using Store.Business.Models.CategoryModels;
 using Store.Business.Services.Interfaces;
+using Store.Data.Dtos;
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 
@@ -16,6 +19,7 @@ namespace Store.Business.Services
             _mapper = mapper;
             _bookRepository = bookRepository;
         }
+
         public async Task<BookModel> GetAsync(int id)
         {
             var book = await _bookRepository.GetAsync(id);
@@ -23,13 +27,15 @@ namespace Store.Business.Services
 
             return bookModel;
         }
+
         public async Task<IEnumerable<BookModel>> GetAsync()
         {
-            var books = await _bookRepository.GetAsync();
-            var bookModels = _mapper.Map<List<BookModel>>(books);
+            var bookDtos = await _bookRepository.GetAsync();
+            var bookModels = DtoMapToModel(bookDtos);
 
             return bookModels;
         }
+
         public async Task<int> CreateAsync(BookCreateModel bookModel)
         {
             var book = _mapper.Map<Book>(bookModel);
@@ -37,6 +43,7 @@ namespace Store.Business.Services
 
             return id;
         }
+
         public async Task<bool> UpdateAsync(BookCreateModel bookModel)
         {
             var book = _mapper.Map<Book>(bookModel);
@@ -44,11 +51,53 @@ namespace Store.Business.Services
 
             return isSuccess;
         }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var isSuccess = await _bookRepository.DeleteAsync(id);
 
             return isSuccess;
+        }
+
+        private IEnumerable<BookModel> DtoMapToModel(IEnumerable<BookDto> bookDtos)
+        {
+            var books = bookDtos
+                .GroupBy(dto => dto.Id)
+                .Select(group =>
+                {
+                    var firstDto = group.First();
+
+                    var bookModel = new BookModel
+                    {
+                        Id = group.Key,
+                        Title = firstDto.Title,
+                        DateOfPublication = firstDto.DateOfPublication,
+                        Description = firstDto.Description,
+                        Price = firstDto.Price,
+                        Authors = group
+                            .Select(dto => new AuthorModel
+                            {
+                                Id = dto.AuthorId,
+                                FirstName = dto.FirstName,
+                                LastName = dto.LastName,
+                                Biography = dto.Biography
+                            })
+                            .DistinctBy(author => author.Id)
+                            .ToList(),
+                        Categories = group
+                            .Select(dto => new CategoryModel
+                            {
+                                Id = dto.CategoryId,
+                                Name = dto.CategoryName
+                            })
+                            .DistinctBy(category => category.Id)
+                            .ToList()
+                    };
+
+                    return bookModel;
+                });
+
+            return books;
         }
     }
 }

@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
+using Store.Business.Models.BookModels;
+using Store.Business.Models.OrderItemsModels;
 using Store.Business.Models.OrderModels;
+using Store.Business.Models.UserModels;
 using Store.Business.Services.Interfaces;
+using Store.Data.Dtos;
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 
@@ -16,6 +20,7 @@ namespace Store.Business.Services
             _mapper = mapper;
             _orderRepository = orderRepository;
         }
+
         public async Task<OrderModel> GetAsync(int id)
         {
             var order = await _orderRepository.GetAsync(id);
@@ -23,13 +28,15 @@ namespace Store.Business.Services
 
             return orderModel;
         }
+
         public async Task<IEnumerable<OrderModel>> GetAsync()
         {
-            var orders = await _orderRepository.GetAsync();
-            var orderModels = _mapper.Map<List<OrderModel>>(orders);
+            var orderDtos = await _orderRepository.GetAsync();
+            var orderModels = DtoMapToModel(orderDtos);
 
             return orderModels;
         }
+
         public async Task<int> CreateAsync(OrderCreateModel orderModel)
         {
             var order = _mapper.Map<Order>(orderModel);
@@ -37,6 +44,7 @@ namespace Store.Business.Services
 
             return id;
         }
+
         public async Task<bool> UpdateAsync(OrderCreateModel orderModel)
         {
             var order = _mapper.Map<Order>(orderModel);
@@ -44,11 +52,54 @@ namespace Store.Business.Services
 
             return isSuccess;
         }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var isSuccess = await _orderRepository.DeleteAsync(id);
 
             return isSuccess;
+        }
+
+        private IEnumerable<OrderModel> DtoMapToModel(IEnumerable<OrderDto> orderDtos)
+        {
+            var orders = orderDtos
+                .GroupBy(dto => dto.Id)
+                .Select(group =>
+                {
+                    var firstDto = group.First();
+
+                    var orderModel = new OrderModel
+                    {
+                        Id = group.Key,
+                        Sum = firstDto.Sum,
+                        Date = firstDto.Date,
+                        User = new UserModel
+                        {
+                            FirstName = firstDto.FirstName,
+                            LastName = firstDto.LastName,
+                            Email = firstDto.Email,
+                            Id = firstDto.UserId,
+                        },
+                        OrderItems = group
+                            .Select(dto => new OrderItemsModel
+                            {
+                                Id = dto.OrderItemsId,
+                                Price = dto.Price,
+                                Amount = dto.Amount,
+                                Book = new BookModel
+                                {
+                                    Id = dto.BookId,
+                                    Title = dto.Title
+                                }
+                            })
+                            .DistinctBy(item => item.Id)
+                            .ToList()
+                    };
+
+                    return orderModel;
+                });
+
+            return orders;
         }
     }
 }

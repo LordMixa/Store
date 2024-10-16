@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Store.Api.Models.Requests;
-using Store.Business.Models.BookModels;
 using Store.Business.Models.OrderModels;
 using Store.Business.Services.Interfaces;
 using Store.ViewModels.ViewModels.OrderViewModels;
@@ -22,47 +21,48 @@ namespace Store.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<OrderViewModel> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             var order = await _orderService.GetAsync(id);
             var orderViewModel = _mapper.Map<OrderViewModel>(order);
 
-            return orderViewModel;
+            return Ok(orderViewModel);
         }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderViewModel>>> Get()
+        public async Task<IActionResult> Get()
         {
             var orders = await _orderService.GetAsync();
             var orderViewModels = _mapper.Map<List<OrderViewModel>>(orders);
 
-            return orderViewModels;
-
+            return Ok(orderViewModels);
         }
+
         [HttpPost]
-        public async Task<ActionResult<int>> Create([FromBody] OrderRequestModel request)
+        public async Task<IActionResult> Create([FromBody] OrderRequestModel request)
         {
             var orderModel = _mapper.Map<OrderCreateModel>(request);
             int id = await _orderService.CreateAsync(orderModel);
 
-            return id;
-
+            return Ok(id);
         }
+
         [HttpPut("{id}")]
-        public async Task<ActionResult<bool>> Update(int id, [FromBody] OrderRequestModel request)
+        public async Task<IActionResult> Update(int id, [FromBody] OrderRequestModel request)
         {
             var orderModel = _mapper.Map<OrderCreateModel>(request);
             orderModel.Id = id;
             var isSuccess = await _orderService.UpdateAsync(orderModel);
 
-            return isSuccess;
-
+            return Ok(isSuccess);
         }
+
         [HttpDelete("{id}")]
-        public async Task<ActionResult<bool>> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var isSuccess = await _orderService.DeleteAsync(id);
 
-            return isSuccess;
+            return Ok(isSuccess);
         }
     }
 }

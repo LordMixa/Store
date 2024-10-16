@@ -8,6 +8,10 @@ using Store.Business.Models.OrderItemsModels;
 using Store.ViewModels.ViewModels.OrderItemsViewModels;
 using Store.Business.Models.UserModels;
 using Store.ViewModels.ViewModels.UserViewModels;
+using Store.Business.Models.AuthorModels;
+using Store.ViewModels.ViewModels.AuthorViewModels;
+using Store.Business.Models.CategoryModels;
+using Store.ViewModels.ViewModels.CategoryViewModels;
 
 namespace Store.Api.MapperConfigurations
 {
@@ -17,8 +21,11 @@ namespace Store.Api.MapperConfigurations
         {
             CreateMap<OrderModel, OrderViewModel>();
             CreateMap<BookModel, BookViewModel>();
+            CreateMap<BookModel, BookTitleViewModel>();
             CreateMap<OrderItemsModel, OrderItemsViewModel>();
             CreateMap<UserModel, UserViewModel>();
+            CreateMap<AuthorModel, AuthorViewModel>();
+            CreateMap<CategoryModel, CategoryViewModel>();
 
             CreateMap<BookRequestModel, BookCreateModel>();
             CreateMap<OrderRequestModel, OrderCreateModel>();

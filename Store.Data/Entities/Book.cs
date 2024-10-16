@@ -7,7 +7,7 @@
         public string Description { get; set; }
         public decimal Price { get; set; }
         public DateOnly DateOfPublication { get; set; }
-        public List<Category> Categories { get; set; }
-        public List<Author> Authors { get; set; }
+        public IEnumerable<Category> Categories { get; set; } = new List<Category>();
+        public IEnumerable<Author> Authors { get; set; } = new List<Author>();
     }
 }
