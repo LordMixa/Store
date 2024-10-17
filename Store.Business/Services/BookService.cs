@@ -65,7 +65,7 @@ namespace Store.Business.Services
                 .GroupBy(dto => dto.Id)
                 .Select(group =>
                 {
-                    var firstDto = group.First();
+                    var firstDto = group.FirstOrDefault();
 
                     var bookModel = new BookModel
                     {
@@ -88,7 +88,7 @@ namespace Store.Business.Services
                             .Select(dto => new CategoryModel
                             {
                                 Id = dto.CategoryId,
-                                Name = dto.CategoryName
+                                Name = dto.Name
                             })
                             .DistinctBy(category => category.Id)
                             .ToList()

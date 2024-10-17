@@ -12,6 +12,6 @@
         public string LastName { get; set; }
         public string Biography { get; set; }
         public int CategoryId { get; set; }
-        public string CategoryName { get; set; }
+        public string Name { get; set; }
     }
 }

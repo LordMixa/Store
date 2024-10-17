@@ -66,7 +66,7 @@ namespace Store.Business.Services
                 .GroupBy(dto => dto.Id)
                 .Select(group =>
                 {
-                    var firstDto = group.First();
+                    var firstDto = group.FirstOrDefault();
 
                     var orderModel = new OrderModel
                     {

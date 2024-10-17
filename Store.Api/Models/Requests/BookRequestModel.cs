@@ -6,5 +6,8 @@
         public string Description { get; init; }
         public decimal Price { get; init; }
         public DateOnly DateOfPublication { get; init; }
+        public List<int> AuthorIds { get; init; }
+        public List<int> CategoryIds { get; init; }
+
     }
 }

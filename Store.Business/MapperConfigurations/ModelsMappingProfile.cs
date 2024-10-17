@@ -18,10 +18,9 @@ namespace Store.Business.MapperConfigurations
             CreateMap<Book, BookModel>();
             CreateMap<OrderItems, OrderItemsModel>();
             CreateMap<User, UserModel>();
-            CreateMap<Category, CategoryModel>();
-            CreateMap<Author, AuthorModel>();
+            CreateMap<Category, CategoryModel>().ReverseMap();
+            CreateMap<Author, AuthorModel>().ReverseMap();
             CreateMap<BookDetails, BookDetailsModel>();
-
 
             CreateMap<BookCreateModel, Book>();
             CreateMap<OrderCreateModel, Order>();

@@ -27,7 +27,12 @@ namespace Store.Api.MapperConfigurations
             CreateMap<AuthorModel, AuthorViewModel>();
             CreateMap<CategoryModel, CategoryViewModel>();
 
-            CreateMap<BookRequestModel, BookCreateModel>();
+            CreateMap<BookRequestModel, BookCreateModel>()
+                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src =>
+                    src.AuthorIds.Select(authorId => new AuthorModel { Id = authorId }).ToList()))
+                .ForMember(dest => dest.Categories, opt => opt.MapFrom(src =>
+                    src.CategoryIds.Select(categoryId => new CategoryModel { Id = categoryId }).ToList()));
+
             CreateMap<OrderRequestModel, OrderCreateModel>();
         }
     }
