@@ -3,6 +3,7 @@ using Store.Data.Dtos;
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 using System.Data;
+using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace Store.Data.Repositories
@@ -258,13 +259,7 @@ namespace Store.Data.Repositories
                         var authorId = reader.GetInt32("AuthorId");
                         if (!book.Authors.Any(a => a.Id == authorId))
                         {
-                            var author = new Author
-                            {
-                                Id = reader.GetInt32("AuthorId"),
-                                FirstName = reader.GetString(nameof(Author.FirstName)),
-                                LastName = reader.GetString(nameof(Author.LastName)),
-                                Biography = reader.GetString(nameof(Author.Biography)),
-                            };
+                            var author = GetAuthor(reader, authorId);
                             book.Authors.Add(author);
                         }
                     }
@@ -273,11 +268,7 @@ namespace Store.Data.Repositories
                         var categoryId = reader.GetInt32("CategoryId");
                         if (!book.Categories.Any(a => a.Id == categoryId))
                         {
-                            var category = new Category
-                            {
-                                Id = reader.GetInt32("CategoryId"),
-                                Name = reader.GetString(nameof(Category.Name))
-                            };
+                            var category = GetCategory(reader, categoryId);
                             book.Categories.Add(category);
                         }
                     }
@@ -373,7 +364,7 @@ namespace Store.Data.Repositories
             return (query.ToString(), sqlCommands);
         }
 
-        private async Task<List<Author>> GetAuthorIds(SqlCommand command, IEnumerable<Author> authors)
+        private async Task<List<int>> GetAuthorIds(SqlCommand command, IEnumerable<Author> authors)
         {
             string authorsQuery = @"
                 SELECT 
@@ -383,25 +374,22 @@ namespace Store.Data.Repositories
 
             command.CommandText = authorsQuery;
 
-            var authorsDB = new List<Author>();
+            var authorsDB = new List<int>();
 
             using (var reader = await command.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
-                    var author = new Author
-                    {
-                        Id = reader.GetInt32(nameof(Author.Id)),
-                    };
-                    authorsDB.Add(author);
+                    int Id = reader.GetInt32(nameof(Author.Id));
+
+                    authorsDB.Add(Id);
                 }
             }
-            authorsDB.RemoveAll(author => !authors.Any(a => a.Id == author.Id));
 
             return authorsDB;
         }
 
-        private async Task<List<Category>> GetCategoryIds(SqlCommand command, IEnumerable<Category> categories)
+        private async Task<List<int>> GetCategoryIds(SqlCommand command, IEnumerable<Category> categories)
         {
             string categoriesQuery = @"
                 SELECT 
@@ -411,20 +399,17 @@ namespace Store.Data.Repositories
 
             command.CommandText = categoriesQuery;
 
-            var categoriesDB = new List<Category>();
+            var categoriesDB = new List<int>();
 
             using (var reader = await command.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
-                    var category = new Category
-                    {
-                        Id = reader.GetInt32(nameof(Category.Id)),
-                    };
-                    categoriesDB.Add(category);
+                    int Id = reader.GetInt32(nameof(Category.Id));
+
+                    categoriesDB.Add(Id);
                 }
             }
-            categoriesDB.RemoveAll(category => !categories.Any(a => a.Id == category.Id));
 
             return categoriesDB;
         }
@@ -432,17 +417,17 @@ namespace Store.Data.Repositories
         private async Task<IEnumerable<Author>> GetExistedAuthors(SqlCommand command, IEnumerable<Author> authors)
         {
             var authorsDB = await GetAuthorIds(command, authors);
-            authorsDB.RemoveAll(author => !authors.Any(a => a.Id == author.Id));
+            var existingAuthors = authors.Where(author => authorsDB.Contains(author.Id)).ToList();
 
-            return authorsDB;
+            return existingAuthors;
         }
 
         private async Task<IEnumerable<Category>> GetExistedCategories(SqlCommand command, IEnumerable<Category> categories)
         {
             var categoriesDB = await GetCategoryIds(command, categories);
-            categoriesDB.RemoveAll(category => !categories.Any(a => a.Id == category.Id));
+            var existingAuthors = categories.Where(author => categoriesDB.Contains(author.Id)).ToList();
 
-            return categoriesDB;
+            return existingAuthors;
         }
 
         private IEnumerable<SqlParameter> GetBookParameters(Book book)
@@ -494,7 +479,7 @@ namespace Store.Data.Repositories
             {
                 var (query, parameters) = await AddCategories(book.Id, book.Categories, command);
 
-                categoryQuery += query;
+                categoryQuery = query;
 
                 foreach (var param in parameters)
                     command.Parameters.Add(param);
@@ -503,6 +488,30 @@ namespace Store.Data.Repositories
             command.CommandText = authorQuery + categoryQuery;
 
             await command.ExecuteNonQueryAsync();
+        }
+
+        private Author GetAuthor(SqlDataReader reader, int authorId)
+        {
+            var author = new Author
+            {
+                Id = authorId,
+                FirstName = reader.GetString(nameof(Author.FirstName)),
+                LastName = reader.GetString(nameof(Author.LastName)),
+                Biography = reader.GetString(nameof(Author.Biography)),
+            };
+
+            return author;
+        }
+
+        private Category GetCategory(SqlDataReader reader, int categoryId)
+        {
+            var category = new Category
+            {
+                Id = reader.GetInt32(categoryId),
+                Name = reader.GetString(nameof(Category.Name))
+            };
+
+            return category;
         }
     }
 }
