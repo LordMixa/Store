@@ -3,10 +3,7 @@ using Store.Data.Dtos;
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 using System.Data;
-using System.Data.Common;
-using System.Net;
 using System.Text;
-using System.Transactions;
 
 namespace Store.Data.Repositories
 {
@@ -56,7 +53,7 @@ namespace Store.Data.Repositories
             {
                 command.CommandText = query;
 
-                command.Parameters.Add(new SqlParameter($"@{nameof(Book.Id)}", id));
+                command.Parameters.Add(new SqlParameter($"@{nameof(id)}", id));
 
                 await sqlConnection.OpenAsync();
 
@@ -133,46 +130,20 @@ namespace Store.Data.Repositories
                     {
                         command.Transaction = transaction;
 
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Title)}", book.Title));
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Price)}", book.Price));
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.DateOfPublication)}", book.DateOfPublication.ToDateTime(new TimeOnly(0, 0))));
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Description)}", book.Description ?? (object)DBNull.Value));
+                        var bookParameters = AddParametresToBook(book);
+
+                        foreach (var param in bookParameters)
+                            command.Parameters.Add(param);
 
                         command.CommandText = query.ToString();
 
                         bookId = (int)await command.ExecuteScalarAsync();
-                    }
 
-                    using (var command = sqlConnection.CreateCommand())
-                    {
-                        command.Transaction = transaction;
+                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Id)}", bookId));
 
-                        string newQuery = string.Empty;
+                        book.Id = bookId;
 
-                        if (book.Authors.Any())
-                        {
-                            book.Authors = await GetAuthors(sqlConnection, book.Authors, transaction);
-
-                            newQuery = AddAuthors(bookId, book.Authors).Item1;
-                            var parametrs = AddAuthors(bookId, book.Authors).Item2;
-
-                            foreach (var param in parametrs)
-                                command.Parameters.Add(param);
-                        }
-                        if (book.Categories.Any())
-                        {
-                            book.Categories = await GetCategories(sqlConnection, book.Categories, transaction);
-
-                            newQuery += AddCategories(bookId, book.Categories).Item1;
-                            var parametrs = AddCategories(bookId, book.Categories).Item2;
-
-                            foreach (var param in parametrs)
-                                command.Parameters.Add(param);
-                        }
-
-                        command.CommandText = newQuery;
-
-                        await command.ExecuteNonQueryAsync();
+                        await AddBookEntities(book, command);
                     }
 
                     transaction.Commit();
@@ -199,7 +170,7 @@ namespace Store.Data.Repositories
                                     Price = @Price,
                                     DateOfPublication = @DateOfPublication,
                                     Description = @Description
-                                WHERE Id = @Id");
+                                WHERE Id = @Id;");
 
             await sqlConnection.OpenAsync();
 
@@ -211,51 +182,21 @@ namespace Store.Data.Repositories
                     {
                         command.Transaction = transaction;
 
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Title)}", book.Title));
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Price)}", book.Price));
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.DateOfPublication)}", book.DateOfPublication.ToDateTime(new TimeOnly(0, 0))));
-                        command.Parameters.Add(new SqlParameter($"@{nameof(Book.Description)}", book.Description ?? (object)DBNull.Value));
+                        var bookParameters = AddParametresToBook(book);
+
+                        foreach (var param in bookParameters)
+                            command.Parameters.Add(param);
+
                         command.Parameters.Add(new SqlParameter($"@{nameof(Book.Id)}", book.Id));
+
+                        query.Append(DeleteBookAuthors());
+                        query.Append(DeleteBookCategories());
 
                         command.CommandText = query.ToString();
 
                         await command.ExecuteNonQueryAsync();
 
-                    }
-
-                    await DeleteBookCategories(book.Id, sqlConnection, transaction);
-                    await DeleteBookAuthors(book.Id, sqlConnection, transaction);
-
-                    using (var command = sqlConnection.CreateCommand())
-                    {
-                        command.Transaction = transaction;
-
-                        string newQuery = string.Empty;
-
-                        if (book.Authors.Any())
-                        {
-                            book.Authors = await GetAuthors(sqlConnection, book.Authors, transaction);
-
-                            newQuery = AddAuthors(book.Id, book.Authors).Item1;
-                            var parametrs = AddAuthors(book.Id, book.Authors).Item2;
-
-                            foreach (var param in parametrs)
-                                command.Parameters.Add(param);
-                        }
-                        if (book.Categories.Any())
-                        {
-                            book.Categories = await GetCategories(sqlConnection, book.Categories, transaction);
-
-                            newQuery += AddCategories(book.Id, book.Categories).Item1;
-                            var parametrs = AddCategories(book.Id, book.Categories).Item2;
-
-                            foreach (var param in parametrs)
-                                command.Parameters.Add(param);
-                        }
-
-                        command.CommandText = newQuery;
-
-                        await command.ExecuteNonQueryAsync();
+                        await AddBookEntities(book, command);
                     }
 
                     transaction.Commit();
@@ -304,8 +245,6 @@ namespace Store.Data.Repositories
             using (var reader = await command.ExecuteReaderAsync())
             {
                 var book = new Book();
-                var authors = new List<Author>();
-                var categories = new List<Category>();
 
                 while (await reader.ReadAsync())
                 {
@@ -317,7 +256,7 @@ namespace Store.Data.Repositories
                     if (!reader.IsDBNull("AuthorId"))
                     {
                         var authorId = reader.GetInt32("AuthorId");
-                        if (!authors.Any(a => a.Id == authorId))
+                        if (!book.Authors.Any(a => a.Id == authorId))
                         {
                             var author = new Author
                             {
@@ -326,25 +265,23 @@ namespace Store.Data.Repositories
                                 LastName = reader.GetString(nameof(Author.LastName)),
                                 Biography = reader.GetString(nameof(Author.Biography)),
                             };
-                            authors.Add(author);
+                            book.Authors.Add(author);
                         }
                     }
                     if (!reader.IsDBNull("CategoryId"))
                     {
                         var categoryId = reader.GetInt32("CategoryId");
-                        if (!categories.Any(a => a.Id == categoryId))
+                        if (!book.Categories.Any(a => a.Id == categoryId))
                         {
                             var category = new Category
                             {
                                 Id = reader.GetInt32("CategoryId"),
                                 Name = reader.GetString(nameof(Category.Name))
                             };
-                            categories.Add(category);
+                            book.Categories.Add(category);
                         }
                     }
                 }
-                book.Authors = authors;
-                book.Categories = categories;
 
                 return book;
             }
@@ -395,44 +332,48 @@ namespace Store.Data.Repositories
             return book;
         }
 
-        private (string, IEnumerable<SqlParameter>) AddAuthors(int bookId, IEnumerable<Author> authors)
+        private async Task<(string, IEnumerable<SqlParameter>)> AddAuthors(int bookId, IEnumerable<Author> authors, SqlCommand command)
         {
+            IEnumerable<Author> updatedAuthors = await RemoveAuthorIds(command, authors);
+
             var query = new StringBuilder();
             var sqlCommands = new List<SqlParameter>
             {
                 new SqlParameter("@BookId", bookId)
             };
 
-            foreach (var author in authors)
+            foreach (var author in updatedAuthors)
             {
                 sqlCommands.Add(new SqlParameter($"@AuthorId_{author.Id}", author.Id));
 
                 query.Append($@"
                     INSERT INTO BookAuthor (BookId, AuthorId) 
-                    VALUES (@BookId, @AuthorId_{author.Id});");
+                    VALUES (@Id, @AuthorId_{author.Id});");
             }
 
             return (query.ToString(), sqlCommands);
         }
 
-        private (string, IEnumerable<SqlParameter>) AddCategories(int bookId, IEnumerable<Category> categories)
+        private async Task<(string, IEnumerable<SqlParameter>)> AddCategories(int bookId, IEnumerable<Category> categories, SqlCommand command)
         {
+            IEnumerable<Category> updatedCategories = await RemoveCategoryIds(command, categories);
+
             var query = new StringBuilder();
             var sqlCommands = new List<SqlParameter>();
 
-            foreach (var category in categories)
+            foreach (var category in updatedCategories)
             {
                 sqlCommands.Add(new SqlParameter($"@CategoryId_{category.Id}", category.Id));
 
                 query.Append($@"
                     INSERT INTO BookCategory (BookId, CategoryId) 
-                    VALUES (@BookId, @CategoryId_{category.Id});");
+                    VALUES (@Id, @CategoryId_{category.Id});");
             }
 
             return (query.ToString(), sqlCommands);
         }
 
-        private async Task<IEnumerable<Author>> GetAuthors(SqlConnection sqlConnection, IEnumerable<Author> authors, SqlTransaction transaction)
+        private async Task<List<Author>> GetAuthorIds(SqlCommand command, IEnumerable<Author> authors)
         {
             string authorsQuery = @"
                 SELECT 
@@ -440,32 +381,27 @@ namespace Store.Data.Repositories
                 FROM 
                     Authors ";
 
-            using (var command = sqlConnection.CreateCommand())
+            command.CommandText = authorsQuery;
+
+            var authorsDB = new List<Author>();
+
+            using (var reader = await command.ExecuteReaderAsync())
             {
-                command.Transaction = transaction;
-
-                command.CommandText = authorsQuery;
-
-                var authorsDB = new List<Author>();
-
-                using (var reader = await command.ExecuteReaderAsync())
+                while (await reader.ReadAsync())
                 {
-                    while (await reader.ReadAsync())
+                    var author = new Author
                     {
-                        var author = new Author
-                        {
-                            Id = reader.GetInt32(nameof(Author.Id)),
-                        };
-                        authorsDB.Add(author);
-                    }
+                        Id = reader.GetInt32(nameof(Author.Id)),
+                    };
+                    authorsDB.Add(author);
                 }
-                authorsDB.RemoveAll(author => !authors.Any(a => a.Id == author.Id));
-
-                return authorsDB;
             }
+            authorsDB.RemoveAll(author => !authors.Any(a => a.Id == author.Id));
+
+            return authorsDB;
         }
 
-        private async Task<IEnumerable<Category>> GetCategories(SqlConnection sqlConnection, IEnumerable<Category> categories, SqlTransaction transaction)
+        private async Task<List<Category>> GetCategoryIds(SqlCommand command, IEnumerable<Category> categories)
         {
             string categoriesQuery = @"
                 SELECT 
@@ -473,61 +409,99 @@ namespace Store.Data.Repositories
                 FROM 
                     Categories ";
 
-            using (var command = sqlConnection.CreateCommand())
+            command.CommandText = categoriesQuery;
+
+            var categoriesDB = new List<Category>();
+
+            using (var reader = await command.ExecuteReaderAsync())
             {
-                command.Transaction = transaction;
-
-                command.CommandText = categoriesQuery;
-
-                var categoriesDB = new List<Category>();
-
-                using (var reader = await command.ExecuteReaderAsync())
+                while (await reader.ReadAsync())
                 {
-                    while (await reader.ReadAsync())
+                    var category = new Category
                     {
-                        var category = new Category
-                        {
-                            Id = reader.GetInt32(nameof(Category.Id)),
-                        };
-                        categoriesDB.Add(category);
-                    }
+                        Id = reader.GetInt32(nameof(Category.Id)),
+                    };
+                    categoriesDB.Add(category);
                 }
-                categoriesDB.RemoveAll(category => !categories.Any(a => a.Id == category.Id));
-
-                return categoriesDB;
             }
+            categoriesDB.RemoveAll(category => !categories.Any(a => a.Id == category.Id));
+
+            return categoriesDB;
         }
 
-        private async Task DeleteBookCategories(int bookId,SqlConnection sqlConnection, SqlTransaction transaction)
+        private async Task<IEnumerable<Author>> RemoveAuthorIds(SqlCommand command, IEnumerable<Author> authors)
+        {
+            var authorsDB = await GetAuthorIds(command, authors);
+            authorsDB.RemoveAll(author => !authors.Any(a => a.Id == author.Id));
+
+            return authorsDB;
+        }
+
+        private async Task<IEnumerable<Category>> RemoveCategoryIds(SqlCommand command, IEnumerable<Category> categories)
+        {
+            var categoriesDB = await GetCategoryIds(command, categories);
+            categoriesDB.RemoveAll(category => !categories.Any(a => a.Id == category.Id));
+
+            return categoriesDB;
+        }
+
+        private IEnumerable<SqlParameter> AddParametresToBook(Book book)
+        {
+            var sqlCommands = new List<SqlParameter>()
+            {
+                new SqlParameter($"@{nameof(Book.Title)}", book.Title),
+                new SqlParameter($"@{nameof(Book.Price)}", book.Price),
+                new SqlParameter($"@{nameof(Book.DateOfPublication)}", book.DateOfPublication.ToDateTime(new TimeOnly(0, 0))),
+                new SqlParameter($"@{nameof(Book.Description)}", book.Description ?? (object)DBNull.Value)
+            };
+
+            return sqlCommands;
+        }
+
+        private string DeleteBookCategories()
         {
             string deleteQuery = @"
                 DELETE FROM BookCategory 
-                WHERE BookId = @BookId";
+                WHERE BookId = @Id;";
 
-            using (var command = sqlConnection.CreateCommand())
-            {
-                command.Transaction = transaction;
-                command.CommandText = deleteQuery;
-                command.Parameters.AddWithValue("@BookId", bookId);
-
-                await command.ExecuteNonQueryAsync();
-            }          
+            return deleteQuery;
         }
 
-        private async Task DeleteBookAuthors(int bookId, SqlConnection sqlConnection, SqlTransaction transaction)
+        private string DeleteBookAuthors()
         {
             string deleteQuery = @"
                 DELETE FROM BookAuthor 
-                WHERE BookId = @BookId";
+                WHERE BookId = @Id;";
 
-            using (var command = sqlConnection.CreateCommand())
+            return deleteQuery;
+        }
+
+        private async Task AddBookEntities(Book book, SqlCommand command)
+        {
+            string newQuery = string.Empty;
+
+            if (book.Authors.Any())
             {
-                command.Transaction = transaction;
-                command.CommandText = deleteQuery;
-                command.Parameters.AddWithValue("@BookId", bookId);
+                var (authorQuery, parameters) = await AddAuthors(book.Id, book.Authors, command);
 
-                await command.ExecuteNonQueryAsync();
+                newQuery = authorQuery;
+
+                foreach (var param in parameters)
+                    command.Parameters.Add(param);
             }
+            if (book.Categories.Any())
+            {
+                var (categoryQuery, parameters) = await AddCategories(book.Id, book.Categories, command);
+
+                newQuery += categoryQuery;
+
+                foreach (var param in parameters)
+                    command.Parameters.Add(param);
+            }
+
+            command.CommandText = newQuery;
+
+            await command.ExecuteNonQueryAsync();
         }
     }
 }
