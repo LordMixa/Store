@@ -130,7 +130,7 @@ namespace Store.Data.Repositories
                     {
                         command.Transaction = transaction;
 
-                        var bookParameters = AddParametresToBook(book);
+                        var bookParameters = GetBookParameters(book);
 
                         foreach (var param in bookParameters)
                             command.Parameters.Add(param);
@@ -182,7 +182,7 @@ namespace Store.Data.Repositories
                     {
                         command.Transaction = transaction;
 
-                        var bookParameters = AddParametresToBook(book);
+                        var bookParameters = GetBookParameters(book);
 
                         foreach (var param in bookParameters)
                             command.Parameters.Add(param);
@@ -334,7 +334,7 @@ namespace Store.Data.Repositories
 
         private async Task<(string, IEnumerable<SqlParameter>)> AddAuthors(int bookId, IEnumerable<Author> authors, SqlCommand command)
         {
-            IEnumerable<Author> updatedAuthors = await RemoveAuthorIds(command, authors);
+            var updatedAuthors = await GetExistedAuthors(command, authors);
 
             var query = new StringBuilder();
             var sqlCommands = new List<SqlParameter>
@@ -356,7 +356,7 @@ namespace Store.Data.Repositories
 
         private async Task<(string, IEnumerable<SqlParameter>)> AddCategories(int bookId, IEnumerable<Category> categories, SqlCommand command)
         {
-            IEnumerable<Category> updatedCategories = await RemoveCategoryIds(command, categories);
+            IEnumerable<Category> updatedCategories = await GetExistedCategories(command, categories);
 
             var query = new StringBuilder();
             var sqlCommands = new List<SqlParameter>();
@@ -429,7 +429,7 @@ namespace Store.Data.Repositories
             return categoriesDB;
         }
 
-        private async Task<IEnumerable<Author>> RemoveAuthorIds(SqlCommand command, IEnumerable<Author> authors)
+        private async Task<IEnumerable<Author>> GetExistedAuthors(SqlCommand command, IEnumerable<Author> authors)
         {
             var authorsDB = await GetAuthorIds(command, authors);
             authorsDB.RemoveAll(author => !authors.Any(a => a.Id == author.Id));
@@ -437,7 +437,7 @@ namespace Store.Data.Repositories
             return authorsDB;
         }
 
-        private async Task<IEnumerable<Category>> RemoveCategoryIds(SqlCommand command, IEnumerable<Category> categories)
+        private async Task<IEnumerable<Category>> GetExistedCategories(SqlCommand command, IEnumerable<Category> categories)
         {
             var categoriesDB = await GetCategoryIds(command, categories);
             categoriesDB.RemoveAll(category => !categories.Any(a => a.Id == category.Id));
@@ -445,7 +445,7 @@ namespace Store.Data.Repositories
             return categoriesDB;
         }
 
-        private IEnumerable<SqlParameter> AddParametresToBook(Book book)
+        private IEnumerable<SqlParameter> GetBookParameters(Book book)
         {
             var sqlCommands = new List<SqlParameter>()
             {
@@ -478,28 +478,29 @@ namespace Store.Data.Repositories
 
         private async Task AddBookEntities(Book book, SqlCommand command)
         {
-            string newQuery = string.Empty;
+            string authorQuery = string.Empty;
+            string categoryQuery = string.Empty;
 
             if (book.Authors.Any())
             {
-                var (authorQuery, parameters) = await AddAuthors(book.Id, book.Authors, command);
+                var (query, parameters) = await AddAuthors(book.Id, book.Authors, command);
 
-                newQuery = authorQuery;
+                authorQuery = query;
 
                 foreach (var param in parameters)
                     command.Parameters.Add(param);
             }
             if (book.Categories.Any())
             {
-                var (categoryQuery, parameters) = await AddCategories(book.Id, book.Categories, command);
+                var (query, parameters) = await AddCategories(book.Id, book.Categories, command);
 
-                newQuery += categoryQuery;
+                categoryQuery += query;
 
                 foreach (var param in parameters)
                     command.Parameters.Add(param);
             }
 
-            command.CommandText = newQuery;
+            command.CommandText = authorQuery + categoryQuery;
 
             await command.ExecuteNonQueryAsync();
         }
