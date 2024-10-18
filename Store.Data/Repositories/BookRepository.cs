@@ -3,7 +3,6 @@ using Store.Data.Dtos;
 using Store.Data.Entities;
 using Store.Data.Repositories.Interfaces;
 using System.Data;
-using System.Reflection.PortableExecutable;
 using System.Text;
 
 namespace Store.Data.Repositories
@@ -190,8 +189,11 @@ namespace Store.Data.Repositories
 
                         command.Parameters.Add(new SqlParameter($"@{nameof(Book.Id)}", book.Id));
 
-                        query.Append(DeleteBookAuthors());
-                        query.Append(DeleteBookCategories());
+                        var deleteBookQuery = DeleteBookAuthors();
+                        query.Append(deleteBookQuery);
+
+                        var deleteCategoryQuery = DeleteBookCategories();
+                        query.Append(deleteCategoryQuery);
 
                         command.CommandText = query.ToString();
 
@@ -507,7 +509,7 @@ namespace Store.Data.Repositories
         {
             var category = new Category
             {
-                Id = reader.GetInt32(categoryId),
+                Id = categoryId,
                 Name = reader.GetString(nameof(Category.Name))
             };
 
