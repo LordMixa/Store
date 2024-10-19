@@ -2,7 +2,7 @@
 {
     public record CategoryViewModel
     {
-        public int Id { get; init; }
+        public int CategoryId { get; init; }
         public string Name { get; init; }
     }
 }

@@ -29,40 +29,40 @@ namespace Store.Api.Controllers
             return Ok(bookViewModel);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Get()
-        {
-            var books = await _bookService.GetAsync();
-            var bookViewModels = _mapper.Map<List<BookViewModel>>(books);
+        //[HttpGet]
+        //public async Task<IActionResult> Get()
+        //{
+        //    var books = await _bookService.GetAsync();
+        //    var bookViewModels = _mapper.Map<List<BookViewModel>>(books);
 
-            return Ok(bookViewModels);
-        }
+        //    return Ok(bookViewModels);
+        //}
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] BookRequestModel request)
-        {
-            var bookModel = _mapper.Map<BookCreateModel>(request);
-            int id = await _bookService.CreateAsync(bookModel);
+        //[HttpPost]
+        //public async Task<IActionResult> Create([FromBody] BookRequestModel request)
+        //{
+        //    var bookModel = _mapper.Map<BookCreateModel>(request);
+        //    int id = await _bookService.CreateAsync(bookModel);
 
-            return Ok(id);
-        }
+        //    return Ok(id);
+        //}
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BookRequestModel request)
-        {
-            var bookModel = _mapper.Map<BookCreateModel>(request);
-            bookModel.Id = id;
-            var isSuccess = await _bookService.UpdateAsync(bookModel);
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> Update(int id, [FromBody] BookRequestModel request)
+        //{
+        //    var bookModel = _mapper.Map<BookCreateModel>(request);
+        //    bookModel.Id = id;
+        //    var isSuccess = await _bookService.UpdateAsync(bookModel);
 
-            return Ok(isSuccess);
-        }
+        //    return Ok(isSuccess);
+        //}
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var isSuccess = await _bookService.DeleteAsync(id);
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> Delete(int id)
+        //{
+        //    var isSuccess = await _bookService.DeleteAsync(id);
 
-            return Ok(isSuccess);
-        }
+        //    return Ok(isSuccess);
+        //}
     }
 }

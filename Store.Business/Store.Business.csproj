@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Store.Data.Dapper\Store.Data.Dapper.csproj" />
     <ProjectReference Include="..\Store.Data\Store.Data.csproj" />
   </ItemGroup>
 

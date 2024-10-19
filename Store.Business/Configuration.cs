@@ -9,11 +9,11 @@ namespace Store.Business
     {
         public static void Configure(IServiceCollection serviceCollection, string connectionString)
         {
-            Data.Configuration.Configure(serviceCollection, connectionString);
+            Data.Dapper.Configuration.Configure(serviceCollection, connectionString);
 
             serviceCollection.AddAutoMapper(typeof(ModelsMappingProfile));
 
-            serviceCollection.AddTransient<IOrderService, OrderService>();
+            //serviceCollection.AddTransient<IOrderService, OrderService>();
             serviceCollection.AddTransient<IBookService, BookService>();
         }
     }
