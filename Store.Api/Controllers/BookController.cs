@@ -29,14 +29,14 @@ namespace Store.Api.Controllers
             return Ok(bookViewModel);
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Get()
-        //{
-        //    var books = await _bookService.GetAsync();
-        //    var bookViewModels = _mapper.Map<List<BookViewModel>>(books);
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            var books = await _bookService.GetAsync();
+            var bookViewModels = _mapper.Map<List<BookViewModel>>(books);
 
-        //    return Ok(bookViewModels);
-        //}
+            return Ok(bookViewModels);
+        }
 
         //[HttpPost]
         //public async Task<IActionResult> Create([FromBody] BookRequestModel request)
