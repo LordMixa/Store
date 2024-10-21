@@ -25,53 +25,41 @@ namespace Store.Data.Dapper.Repositories
             {
                 var parameters = new { @Id = id };
 
-                var books = await sqlConnection.QueryAsync<Book, Author, Category, Book>(
+                var booksDictionary = new Dictionary<int, Book>();
+
+                await sqlConnection.QueryAsync<Book, Author, Category, Book>(
                 "Procedure_GetBookById",
                 (book, author, category) =>
                 {
-                    if (author != null && !book.Authors.Any(a => a.AuthorId == author.AuthorId))
-                    {
-                        book.Authors.Add(author);
-                    }
-                    if (category != null && !book.Categories.Any(c => c.CategoryId == category.CategoryId))
-                    {
-                        book.Categories.Add(category);
-                    }
 
-                    return book;
+                      if (booksDictionary.TryGetValue(book.Id, out var existingBook))
+                      {
+                          book = existingBook;
+                      }
+                      else
+                      {
+                          booksDictionary.Add(book.Id, book);
+                      }
+
+                      if (author != null && !book.Authors.Any(a => a.AuthorId == author.AuthorId))
+                      {
+                          book.Authors.Add(author);
+                      }
+                      if (category != null && !book.Categories.Any(c => c.CategoryId == category.CategoryId))
+                      {
+                          book.Categories.Add(category);
+                      }
+
+                      return book;
                 },
                 parameters,
-                splitOn: "Id,AuthorId,CategoryId",
+                splitOn: "AuthorId,CategoryId",
                 commandType: CommandType.StoredProcedure
                 );
 
-                var combinedBooks = books
-                .GroupBy(book => book.Id)
-                .Select(group =>
-                {
-                    var combinedBook = group.First(); 
+                var bookTryGetBool = booksDictionary.TryGetValue(id, out var bookResponse);
 
-                    foreach (var book in group)
-                    {
-                        foreach (var author in book.Authors)
-                        {
-                            if (!combinedBook.Authors.Any(a => a.AuthorId == author.AuthorId))
-                            {
-                                combinedBook.Authors.Add(author);
-                            }
-                        }
-                        foreach (var category in book.Categories)
-                        {
-                            if (!combinedBook.Categories.Any(c => c.CategoryId == category.CategoryId))
-                            {
-                                combinedBook.Categories.Add(category);
-                            }
-                        }
-                    }
-                    return combinedBook;
-                });
-
-                return combinedBooks.FirstOrDefault();
+                return bookResponse;
             }
         }
     }
