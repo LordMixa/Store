@@ -47,22 +47,23 @@ namespace Store.Api.Controllers
             return Ok(id);
         }
 
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> Update(int id, [FromBody] BookRequestModel request)
-        //{
-        //    var bookModel = _mapper.Map<BookCreateModel>(request);
-        //    bookModel.Id = id;
-        //    var isSuccess = await _bookService.UpdateAsync(bookModel);
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] BookUpdateRequestModel request)
+        {
+            var bookModel = _mapper.Map<BookUpdateModel>(request);
+            bookModel.Id = id;
 
-        //    return Ok(isSuccess);
-        //}
+            var isSuccess = await _bookService.UpdateAsync(bookModel);
 
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> Delete(int id)
-        //{
-        //    var isSuccess = await _bookService.DeleteAsync(id);
+            return Ok(isSuccess);
+        }
 
-        //    return Ok(isSuccess);
-        //}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var isSuccess = await _bookService.DeleteAsync(id);
+
+            return Ok(isSuccess);
+        }
     }
 }

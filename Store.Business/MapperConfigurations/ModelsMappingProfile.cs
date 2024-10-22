@@ -23,6 +23,8 @@ namespace Store.Business.MapperConfigurations
             CreateMap<BookDetails, BookDetailsModel>();
 
             CreateMap<BookCreateModel, Book>();
+            CreateMap<BookUpdateModel, Book>();
+
             CreateMap<OrderCreateModel, Order>();
         }
     }

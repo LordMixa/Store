@@ -1,6 +1,6 @@
 ﻿namespace Store.Contracts.Requests.Books
 {
-    public record BookCreateRequestModel
+    public record BookUpdateRequestModel
     {
         public string Title { get; init; }
         public string Description { get; init; }

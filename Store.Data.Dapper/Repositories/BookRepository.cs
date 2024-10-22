@@ -98,6 +98,52 @@ namespace Store.Data.Dapper.Repositories
             }
         }
 
+        public async Task<bool> UpdateAsync(Book book)
+        {
+            var authorIds = book.Authors.Select(a => a.Id);
+            var categoryIds = book.Categories.Select(c => c.Id);
+
+            var authors = CreateEntityIdsTable(authorIds);
+            var categories = CreateEntityIdsTable(categoryIds);
+
+            using (_sqlConnection)
+            {
+                var parameters = new
+                {
+                    book.Id,
+                    book.Title,
+                    book.Description,
+                    book.Price,
+                    book.DateOfPublication,
+                    @AuthorIds = authors,
+                    @CategoryIds = categories
+                };
+
+                bool isSuccess = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
+                "Procedure_UpdateBook",
+                parameters,
+                commandType: CommandType.StoredProcedure
+                );
+
+                return isSuccess;
+            }
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            using (_sqlConnection)
+            {
+                var parameters = new { @Id = id };
+
+                var isSuccess = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
+                "Procedure_DeleteBook",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+                return isSuccess;
+            }
+        }
+
         private DataTable CreateEntityIdsTable(IEnumerable<int> ids)
         {
             var dataTable = new DataTable();
@@ -110,23 +156,6 @@ namespace Store.Data.Dapper.Repositories
             }
 
             return dataTable;
-        }
-
-        public async Task<IEnumerable<BookDto>?> GetAsync()
-        {
-            if (_dbConnection is not SqlConnection sqlConnection)
-            {
-                return null;
-            }
-
-            using (sqlConnection)
-            {
-                var books = await sqlConnection.QueryAsync<BookDto>(
-                "Procedure_GetAllBooks",
-                commandType: CommandType.StoredProcedure);
-
-                return books;
-            }
         }
     }
 }

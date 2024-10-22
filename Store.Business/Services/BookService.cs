@@ -38,23 +38,46 @@ namespace Store.Business.Services
 
         public async Task<int> CreateAsync(BookCreateModel bookModel)
         {
-            var authorInts = bookModel.Authors.Select(a => a.Id);
-
-            bool isAuthorsValid = ValidateIds(authorInts);
-            if (!isAuthorsValid)
-                throw new Exception($"Parameter {typeof(Author)} {nameof(Author.Id)} is not valid");
-
-            var categoryInts = bookModel.Categories.Select(c => c.Id);
-
-            bool isCategoriesValid = ValidateIds(categoryInts);
-            if (!isCategoriesValid)
-                throw new Exception($"Parameter {typeof(Category)} {nameof(Category.Id)} is not valid");
+            ValidateBook(bookModel.Authors, bookModel.Categories);
 
             var book = _mapper.Map<Book>(bookModel);
 
             var id = await _bookRepository.CreateAsync(book);
 
             return id;
+        }
+
+        public async Task<bool> UpdateAsync(BookUpdateModel bookModel)
+        {
+            ValidateBook(bookModel.Authors, bookModel.Categories);
+
+            var book = _mapper.Map<Book>(bookModel);
+
+            var isSuccess = await _bookRepository.UpdateAsync(book);
+
+            return isSuccess;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var isSuccess = await _bookRepository.DeleteAsync(id);
+
+            return isSuccess;
+        }
+
+        private void ValidateBook(IEnumerable<AuthorModel> authorModels, IEnumerable<CategoryModel> categoryModels)
+        {
+            var authorInts = authorModels.Select(a => a.Id);
+
+            bool isAuthorsValid = ValidateIds(authorInts);
+            if (!isAuthorsValid)
+                throw new Exception($"Parameter {typeof(Author)} {nameof(Author.Id)} is not valid");
+
+            var categoryInts = categoryModels.Select(c => c.Id);
+
+            bool isCategoriesValid = ValidateIds(categoryInts);
+            if (!isCategoriesValid)
+                throw new Exception($"Parameter {typeof(Category)} {nameof(Category.Id)} is not valid");
         }
 
         private bool ValidateIds(IEnumerable<int> Ids)
@@ -64,21 +87,6 @@ namespace Store.Business.Services
 
             return true;
         }
-
-        //public async Task<bool> UpdateAsync(BookCreateModel bookModel)
-        //{
-        //    var book = _mapper.Map<Book>(bookModel);
-        //    var isSuccess = await _bookRepository.UpdateAsync(book);
-
-        //    return isSuccess;
-        //}
-
-        //public async Task<bool> DeleteAsync(int id)
-        //{
-        //    var isSuccess = await _bookRepository.DeleteAsync(id);
-
-        //    return isSuccess;
-        //}
 
         private IEnumerable<BookModel> DtoMapToModel(IEnumerable<BookDto> bookDtos)
         {

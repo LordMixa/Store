@@ -3,7 +3,7 @@ using Store.Business.Models.Categories;
 
 namespace Store.Business.Models.BookModels
 {
-    public class BookCreateModel
+    public class BookUpdateModel
     {
         public int Id { get; set; }
         public string Title { get; set; }

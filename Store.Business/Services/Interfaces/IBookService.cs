@@ -7,7 +7,7 @@ namespace Store.Business.Services.Interfaces
         Task<BookModel> GetAsync(int id);
         Task<IEnumerable<BookModel>> GetAsync();
         Task<int> CreateAsync(BookCreateModel bookModel);
-        //Task<bool> UpdateAsync(BookCreateModel bookModel);
-        //Task<bool> DeleteAsync(int id);
+        Task<bool> UpdateAsync(BookUpdateModel bookModel);
+        Task<bool> DeleteAsync(int id);
     }
 }

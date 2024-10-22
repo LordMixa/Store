@@ -8,5 +8,7 @@ namespace Store.Data.Dapper.Repositories.Interfaces
         Task<Book?> GetAsync(int id);
         Task<IEnumerable<BookDto>?> GetAsync();
         Task<int> CreateAsync(Book book);
+        Task<bool> UpdateAsync(Book book);
+        Task<bool> DeleteAsync(int id);
     }
 }
