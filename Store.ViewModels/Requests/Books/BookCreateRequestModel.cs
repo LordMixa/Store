@@ -1,6 +1,6 @@
-﻿namespace Store.Api.Models.Requests
+﻿namespace Store.Contracts.Requests.Books
 {
-    public record BookRequestModel
+    public record BookCreateRequestModel
     {
         public string Title { get; init; }
         public string Description { get; init; }

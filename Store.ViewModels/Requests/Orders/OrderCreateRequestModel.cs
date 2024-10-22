@@ -1,6 +1,6 @@
-﻿namespace Store.Api.Models.Requests
+﻿namespace Store.Contracts.Requests.Orders
 {
-    public record OrderRequestModel
+    public record OrderCreateRequestModel
     {
         public decimal Sum { get; init; }
         public DateOnly Date { get; init; }

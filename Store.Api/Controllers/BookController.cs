@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Store.Api.Models.Requests;
 using Store.Business.Models.BookModels;
 using Store.Business.Services.Interfaces;
-using Store.ViewModels.ViewModels.BookViewModels;
+using Store.Contracts.Requests.Books;
+using Store.Contracts.Responses.Books;
 
 namespace Store.Api.Controllers
 {
@@ -24,7 +24,7 @@ namespace Store.Api.Controllers
         public async Task<IActionResult> Get(int id)
         {
             var book = await _bookService.GetAsync(id);
-            var bookViewModel = _mapper.Map<BookViewModel>(book);
+            var bookViewModel = _mapper.Map<BookResponseModel>(book);
 
             return Ok(bookViewModel);
         }
@@ -33,13 +33,13 @@ namespace Store.Api.Controllers
         public async Task<IActionResult> Get()
         {
             var books = await _bookService.GetAsync();
-            var bookViewModels = _mapper.Map<List<BookViewModel>>(books);
+            var bookViewModels = _mapper.Map<List<BookResponseModel>>(books);
 
             return Ok(bookViewModels);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] BookRequestModel request)
+        public async Task<IActionResult> Create([FromBody] BookCreateRequestModel request)
         {
             var bookModel = _mapper.Map<BookCreateModel>(request);
             int id = await _bookService.CreateAsync(bookModel);

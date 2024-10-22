@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.Data", "Store.Data\St
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.Business", "Store.Business\Store.Business.csproj", "{995B6313-1723-49B3-A976-C2B81F89D4DD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.ViewModels", "Store.ViewModels\Store.ViewModels.csproj", "{D9F63C10-4D73-407B-876E-D37910F2BE21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Store.Contracts", "Store.ViewModels\Store.Contracts.csproj", "{D9F63C10-4D73-407B-876E-D37910F2BE21}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Store.Data.Dapper", "Store.Data.Dapper\Store.Data.Dapper.csproj", "{8FA5DC83-E0A1-49EF-A884-22E2DC5BF2CC}"
 EndProject

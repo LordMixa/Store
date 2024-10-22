@@ -1,6 +1,6 @@
-﻿namespace Store.ViewModels.ViewModels.BookViewModels
+﻿namespace Store.Contracts.Responses.Books
 {
-    public record BookTitleViewModel
+    public record BookTitleResponseModel
     {
         public int Id { get; init; }
         public string Title { get; init; }
