@@ -117,13 +117,13 @@ namespace Store.Data.Dapper.Repositories
             }
         }
 
-        private DataTable CreateEntityIdsTable(IEnumerable<int> baseEntities)
+        private DataTable CreateEntityIdsTable(IEnumerable<int> ids)
         {
             var dataTable = new DataTable();
 
             dataTable.Columns.Add("Id", typeof(int));
 
-            foreach (var id in baseEntities)
+            foreach (var id in ids)
             {
                 dataTable.Rows.Add(id);
             }

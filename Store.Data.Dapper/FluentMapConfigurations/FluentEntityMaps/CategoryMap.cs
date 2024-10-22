@@ -7,7 +7,7 @@ namespace Store.Data.Dapper.FluentMapConfigurations.FluentEntityMaps
     {
         public CategoryMap()
         {
-            Map(u => u.Id).ToColumn("CategoryId");
+            Map(_ => _.Id).ToColumn("CategoryId");
         }
     }
 }
