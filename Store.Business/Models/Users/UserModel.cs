@@ -1,4 +1,4 @@
-﻿namespace Store.Business.Models.UserModels
+﻿namespace Store.Business.Models.Users
 {
     public record UserModel
     {

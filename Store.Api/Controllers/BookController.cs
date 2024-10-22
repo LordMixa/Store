@@ -24,18 +24,18 @@ namespace Store.Api.Controllers
         public async Task<IActionResult> Get(int id)
         {
             var book = await _bookService.GetAsync(id);
-            var bookViewModel = _mapper.Map<BookResponseModel>(book);
+            var bookResponseModel = _mapper.Map<BookResponseModel>(book);
 
-            return Ok(bookViewModel);
+            return Ok(bookResponseModel);
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var books = await _bookService.GetAsync();
-            var bookViewModels = _mapper.Map<List<BookResponseModel>>(books);
+            var bookResponseModels = _mapper.Map<List<BookResponseModel>>(books);
 
-            return Ok(bookViewModels);
+            return Ok(bookResponseModels);
         }
 
         [HttpPost]
@@ -43,9 +43,6 @@ namespace Store.Api.Controllers
         {
             var bookModel = _mapper.Map<BookCreateModel>(request);
             int id = await _bookService.CreateAsync(bookModel);
-
-            if (id == 0)
-                return BadRequest(id);
 
             return Ok(id);
         }

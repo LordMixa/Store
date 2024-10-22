@@ -1,4 +1,4 @@
-﻿using Store.Business.Models.OrderModels;
+﻿using Store.Business.Models.Orders;
 
 namespace Store.Business.Services.Interfaces
 {

@@ -1,7 +1,7 @@
 ﻿using Store.Business.Models.BookModels;
 
-namespace Store.Business.Models.BookDetailsModels
-{
+namespace Store.Business.Models.BookDetails
+{ 
     public record BookDetailsModel
     {
         public int Id { get; init; }

@@ -9,7 +9,7 @@ namespace Store.Contracts.Responses.Orders
         public decimal Sum { get; init; }
         public DateOnly Date { get; init; }
         public UserResponseModel User { get; init; }
-        public IEnumerable<OrderItemsResponseModel> OrderItems { get; init; }
+        public IEnumerable<OrderItemsResponseModel> OrderItems { get; init; } = new List<OrderItemsResponseModel>();
 
     }
 }

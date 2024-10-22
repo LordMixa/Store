@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Store.Business.Models.OrderModels;
+using Store.Business.Models.Orders;
 using Store.Business.Services.Interfaces;
 using Store.Contracts.Requests.Orders;
 using Store.Contracts.Responses.Orders;

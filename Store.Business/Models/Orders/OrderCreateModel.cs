@@ -1,4 +1,4 @@
-﻿namespace Store.Business.Models.OrderModels
+﻿namespace Store.Business.Models.Orders
 {
     public class OrderCreateModel
     {

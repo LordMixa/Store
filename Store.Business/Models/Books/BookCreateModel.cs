@@ -1,5 +1,5 @@
-﻿using Store.Business.Models.AuthorModels;
-using Store.Business.Models.CategoryModels;
+﻿using Store.Business.Models.Authors;
+using Store.Business.Models.Categories;
 
 namespace Store.Business.Models.BookModels
 {

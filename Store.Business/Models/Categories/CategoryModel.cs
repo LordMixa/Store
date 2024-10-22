@@ -1,4 +1,4 @@
-﻿namespace Store.Business.Models.CategoryModels
+﻿namespace Store.Business.Models.Categories
 {
     public record CategoryModel
     {

@@ -1,7 +1,7 @@
 ﻿using Store.Business.Models.BookModels;
-using Store.Business.Models.OrderModels;
+using Store.Business.Models.Orders;
 
-namespace Store.Business.Models.OrderItemsModels
+namespace Store.Business.Models.OrderItems
 {
     public record OrderItemsModel
     {

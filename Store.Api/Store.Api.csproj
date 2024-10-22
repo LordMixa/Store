@@ -14,7 +14,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Store.Business\Store.Business.csproj" />
     <ProjectReference Include="..\Store.ViewModels\Store.Contracts.csproj" />
-    <ProjectReference Include="..\Store.ViewModels\Store.ViewModels.csproj" />
   </ItemGroup>
 
 </Project>

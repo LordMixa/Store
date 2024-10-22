@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
-using Store.Business.Models.OrderModels;
+using Store.Business.Models.Orders;
 using Store.Business.Models.BookModels;
-using Store.Business.Models.OrderItemsModels;
-using Store.Business.Models.UserModels;
-using Store.Business.Models.CategoryModels;
-using Store.Business.Models.AuthorModels;
-using Store.Business.Models.BookDetailsModels;
+using Store.Business.Models.OrderItems;
+using Store.Business.Models.Users;
+using Store.Business.Models.Categories;
+using Store.Business.Models.Authors;
+using Store.Business.Models.BookDetails;
 using Store.Entities.Entities;
 
 namespace Store.Business.MapperConfigurations

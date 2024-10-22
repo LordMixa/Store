@@ -1,5 +1,5 @@
-﻿using Store.Business.Models.AuthorModels;
-using Store.Business.Models.CategoryModels;
+﻿using Store.Business.Models.Authors;
+using Store.Business.Models.Categories;
 
 namespace Store.Business.Models.BookModels
 {
@@ -10,7 +10,7 @@ namespace Store.Business.Models.BookModels
         public string Description { get; set; }
         public decimal Price { get; set; }
         public DateTime DateOfPublication { get; set; }
-        public IEnumerable<CategoryModel> Categories { get; set; }
-        public IEnumerable<AuthorModel> Authors { get; set; }
+        public IEnumerable<CategoryModel> Categories { get; set; } = new List<CategoryModel>();
+        public IEnumerable<AuthorModel> Authors { get; set; } = new List<AuthorModel>();
     }
 }

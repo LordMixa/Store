@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using Store.Business.Models.AuthorModels;
+using Store.Business.Models.Authors;
 using Store.Business.Models.BookModels;
-using Store.Business.Models.CategoryModels;
+using Store.Business.Models.Categories;
 using Store.Business.Services.Interfaces;
 using Store.Data.Dapper.Repositories.Interfaces;
 using Store.Entities.Dtos;
@@ -38,10 +38,14 @@ namespace Store.Business.Services
 
         public async Task<int> CreateAsync(BookCreateModel bookModel)
         {
-            bool checkEntity = CheckBookIds(bookModel);
 
-            if(!checkEntity)
-                return 0;
+            bool isAuthorsValid = ValidateAuthorIds(bookModel.Authors);
+            if (!isAuthorsValid)
+                throw new();
+
+            bool isCategoriesValid = ValidateCategoryIds(bookModel.Categories);
+            if (!isCategoriesValid)
+                throw new();
 
             var book = _mapper.Map<Book>(bookModel);
 
@@ -50,19 +54,18 @@ namespace Store.Business.Services
             return id;
         }
 
-        private bool CheckBookIds(BookCreateModel bookModel)
+        private bool ValidateAuthorIds(IEnumerable<AuthorModel> authors)
         {
-            foreach(var author in bookModel.Authors)
-            {
-                if(author.Id <= 0)
-                    return false;
-            }
+            if(authors.Any(a => a.Id <=0 ))
+                return false;
 
-            foreach (var category in bookModel.Categories)
-            {
-                if (category.Id <= 0)
-                    return false;
-            }
+            return true;
+        }
+
+        private bool ValidateCategoryIds(IEnumerable<CategoryModel> categories)
+        {
+            if (categories.Any(a => a.Id <= 0))
+                return false;
 
             return true;
         }
