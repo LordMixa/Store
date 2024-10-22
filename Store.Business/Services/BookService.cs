@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using Store.Business.Models.AuthorModels;
+using Store.Business.Models.Authors;
 using Store.Business.Models.BookModels;
-using Store.Business.Models.CategoryModels;
+using Store.Business.Models.Categories;
 using Store.Business.Services.Interfaces;
 using Store.Data.Dapper.Repositories.Interfaces;
 using Store.Entities.Dtos;
+using Store.Entities.Entities;
 
 namespace Store.Business.Services
 {
@@ -35,13 +36,34 @@ namespace Store.Business.Services
             return bookModels;
         }
 
-        //public async Task<int> CreateAsync(BookCreateModel bookModel)
-        //{
-        //    var book = _mapper.Map<Book>(bookModel);
-        //    var id = await _bookRepository.CreateAsync(book);
+        public async Task<int> CreateAsync(BookCreateModel bookModel)
+        {
+            var authorInts = bookModel.Authors.Select(a => a.Id);
 
-        //    return id;
-        //}
+            bool isAuthorsValid = ValidateIds(authorInts);
+            if (!isAuthorsValid)
+                throw new Exception($"Parameter {typeof(Author)} {nameof(Author.Id)} is not valid");
+
+            var categoryInts = bookModel.Categories.Select(c => c.Id);
+
+            bool isCategoriesValid = ValidateIds(categoryInts);
+            if (!isCategoriesValid)
+                throw new Exception($"Parameter {typeof(Category)} {nameof(Category.Id)} is not valid");
+
+            var book = _mapper.Map<Book>(bookModel);
+
+            var id = await _bookRepository.CreateAsync(book);
+
+            return id;
+        }
+
+        private bool ValidateIds(IEnumerable<int> Ids)
+        {
+            if (Ids.Any(id => id <= 0))
+                return false;
+
+            return true;
+        }
 
         //public async Task<bool> UpdateAsync(BookCreateModel bookModel)
         //{
@@ -76,20 +98,20 @@ namespace Store.Business.Services
                         Authors = group
                             .Select(dto => new AuthorModel
                             {
-                                AuthorId = dto.AuthorId,
+                                Id = dto.AuthorId,
                                 FirstName = dto.FirstName,
                                 LastName = dto.LastName,
                                 Biography = dto.Biography
                             })
-                            .DistinctBy(author => author.AuthorId)
+                            .DistinctBy(author => author.Id)
                             .ToList(),
                         Categories = group
                             .Select(dto => new CategoryModel
                             {
-                                CategoryId = dto.CategoryId,
+                                Id = dto.CategoryId,
                                 Name = dto.Name
                             })
-                            .DistinctBy(category => category.CategoryId)
+                            .DistinctBy(category => category.Id)
                             .ToList()
                     };
 

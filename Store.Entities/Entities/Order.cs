@@ -1,8 +1,7 @@
 ﻿namespace Store.Entities.Entities
 {
-    public class Order
+    public class Order : BaseEntity
     {
-        public int Id { get; set; }
         public decimal Sum { get; set; }
         public DateOnly Date {  get; set; }
         public User User { get; set; }

@@ -1,17 +1,18 @@
 ﻿using AutoMapper;
-using Store.Business.Models.OrderModels;
+using Store.Business.Models.Orders;
 using Store.Business.Models.BookModels;
-using Store.ViewModels.ViewModels.OrderViewModels;
-using Store.ViewModels.ViewModels.BookViewModels;
-using Store.Api.Models.Requests;
-using Store.Business.Models.OrderItemsModels;
-using Store.ViewModels.ViewModels.OrderItemsViewModels;
-using Store.Business.Models.UserModels;
-using Store.ViewModels.ViewModels.UserViewModels;
-using Store.Business.Models.AuthorModels;
-using Store.ViewModels.ViewModels.AuthorViewModels;
-using Store.Business.Models.CategoryModels;
-using Store.ViewModels.ViewModels.CategoryViewModels;
+using Store.Business.Models.OrderItems;
+using Store.Business.Models.Users;
+using Store.Business.Models.Authors;
+using Store.Business.Models.Categories;
+using Store.Contracts.Responses.Orders;
+using Store.Contracts.Responses.Books;
+using Store.Contracts.Responses.OrderItems;
+using Store.Contracts.Responses.Users;
+using Store.Contracts.Responses.Authors;
+using Store.Contracts.Responses.Categories;
+using Store.Contracts.Requests.Books;
+using Store.Contracts.Requests.Orders;
 
 namespace Store.Api.MapperConfigurations
 {
@@ -19,21 +20,21 @@ namespace Store.Api.MapperConfigurations
     {
         public ViewModelsMappingProfile() 
         {
-            CreateMap<OrderModel, OrderViewModel>();
-            CreateMap<BookModel, BookViewModel>();
-            CreateMap<BookModel, BookTitleViewModel>();
-            CreateMap<OrderItemsModel, OrderItemsViewModel>();
-            CreateMap<UserModel, UserViewModel>();
-            CreateMap<AuthorModel, AuthorViewModel>();
-            CreateMap<CategoryModel, CategoryViewModel>();
+            CreateMap<OrderModel, OrderResponseModel>();
+            CreateMap<BookModel, BookResponseModel>();
+            CreateMap<BookModel, BookTitleResponseModel>();
+            CreateMap<OrderItemsModel, OrderItemsResponseModel>();
+            CreateMap<UserModel, UserResponseModel>();
+            CreateMap<AuthorModel, AuthorResponseModel>();
+            CreateMap<CategoryModel, CategoryResponseModel>();
 
-            CreateMap<BookRequestModel, BookCreateModel>()
+            CreateMap<BookCreateRequestModel, BookCreateModel>()
                 .ForMember(dest => dest.Authors, opt => opt.MapFrom(src =>
-                    src.AuthorIds.Select(authorId => new AuthorModel { AuthorId = authorId }).ToList()))
+                    src.AuthorIds.Select(authorId => new AuthorModel { Id = authorId }).ToList()))
                 .ForMember(dest => dest.Categories, opt => opt.MapFrom(src =>
-                    src.CategoryIds.Select(categoryId => new CategoryModel { CategoryId = categoryId }).ToList()));
+                    src.CategoryIds.Select(categoryId => new CategoryModel { Id = categoryId }).ToList()));
 
-            CreateMap<OrderRequestModel, OrderCreateModel>();
+            CreateMap<OrderCreateRequestModel, OrderCreateModel>();
         }
     }
 }

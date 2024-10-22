@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Store.Api.Models.Requests;
-using Store.Business.Models.OrderModels;
+using Store.Business.Models.Orders;
 using Store.Business.Services.Interfaces;
-using Store.ViewModels.ViewModels.OrderViewModels;
+using Store.Contracts.Requests.Orders;
+using Store.Contracts.Responses.Orders;
 
 namespace Store.Api.Controllers
 {
@@ -24,7 +24,7 @@ namespace Store.Api.Controllers
         public async Task<IActionResult> Get(int id)
         {
             var order = await _orderService.GetAsync(id);
-            var orderViewModel = _mapper.Map<OrderViewModel>(order);
+            var orderViewModel = _mapper.Map<OrderResponseModel>(order);
 
             return Ok(orderViewModel);
         }
@@ -33,13 +33,13 @@ namespace Store.Api.Controllers
         public async Task<IActionResult> Get()
         {
             var orders = await _orderService.GetAsync();
-            var orderViewModels = _mapper.Map<List<OrderViewModel>>(orders);
+            var orderViewModels = _mapper.Map<List<OrderResponseModel>>(orders);
 
             return Ok(orderViewModels);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] OrderRequestModel request)
+        public async Task<IActionResult> Create([FromBody] OrderCreateRequestModel request)
         {
             var orderModel = _mapper.Map<OrderCreateModel>(request);
             int id = await _orderService.CreateAsync(orderModel);
@@ -48,7 +48,7 @@ namespace Store.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] OrderRequestModel request)
+        public async Task<IActionResult> Update(int id, [FromBody] OrderCreateRequestModel request)
         {
             var orderModel = _mapper.Map<OrderCreateModel>(request);
             orderModel.Id = id;
