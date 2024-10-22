@@ -38,14 +38,17 @@ namespace Store.Business.Services
 
         public async Task<int> CreateAsync(BookCreateModel bookModel)
         {
+            var authorInts = bookModel.Authors.Select(a => a.Id);
 
-            bool isAuthorsValid = ValidateAuthorIds(bookModel.Authors);
+            bool isAuthorsValid = ValidateIds(authorInts);
             if (!isAuthorsValid)
-                throw new();
+                throw new Exception($"Parameter {typeof(Author)} {nameof(Author.Id)} is not valid");
 
-            bool isCategoriesValid = ValidateCategoryIds(bookModel.Categories);
+            var categoryInts = bookModel.Categories.Select(c => c.Id);
+
+            bool isCategoriesValid = ValidateIds(categoryInts);
             if (!isCategoriesValid)
-                throw new();
+                throw new Exception($"Parameter {typeof(Category)} {nameof(Category.Id)} is not valid");
 
             var book = _mapper.Map<Book>(bookModel);
 
@@ -54,17 +57,9 @@ namespace Store.Business.Services
             return id;
         }
 
-        private bool ValidateAuthorIds(IEnumerable<AuthorModel> authors)
+        private bool ValidateIds(IEnumerable<int> Ids)
         {
-            if(authors.Any(a => a.Id <=0 ))
-                return false;
-
-            return true;
-        }
-
-        private bool ValidateCategoryIds(IEnumerable<CategoryModel> categories)
-        {
-            if (categories.Any(a => a.Id <= 0))
+            if (Ids.Any(id => id <= 0))
                 return false;
 
             return true;
