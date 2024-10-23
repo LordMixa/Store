@@ -53,17 +53,17 @@ namespace Store.Api.Controllers
             var bookModel = _mapper.Map<BookUpdateModel>(request);
             bookModel.Id = id;
 
-            var isSuccess = await _bookService.UpdateAsync(bookModel);
+            var isSucceeded = await _bookService.UpdateAsync(bookModel);
 
-            return Ok(isSuccess);
+            return Ok(isSucceeded);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var isSuccess = await _bookService.DeleteAsync(id);
+            var isSucceeded = await _bookService.DeleteAsync(id);
 
-            return Ok(isSuccess);
+            return Ok(isSucceeded);
         }
     }
 }

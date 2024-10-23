@@ -119,13 +119,13 @@ namespace Store.Data.Dapper.Repositories
                     @CategoryIds = categories
                 };
 
-                bool isSuccess = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
+                bool isSucceeded = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
                 "Procedure_UpdateBook",
                 parameters,
                 commandType: CommandType.StoredProcedure
                 );
 
-                return isSuccess;
+                return isSucceeded;
             }
         }
 
@@ -135,12 +135,12 @@ namespace Store.Data.Dapper.Repositories
             {
                 var parameters = new { @Id = id };
 
-                var isSuccess = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
+                var isSucceeded = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
                 "Procedure_DeleteBook",
                 parameters,
                 commandType: CommandType.StoredProcedure);
 
-                return isSuccess;
+                return isSucceeded;
             }
         }
 

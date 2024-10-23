@@ -53,16 +53,16 @@ namespace Store.Business.Services
 
             var book = _mapper.Map<Book>(bookModel);
 
-            var isSuccess = await _bookRepository.UpdateAsync(book);
+            var isSucceeded = await _bookRepository.UpdateAsync(book);
 
-            return isSuccess;
+            return isSucceeded;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var isSuccess = await _bookRepository.DeleteAsync(id);
+            var isSucceeded = await _bookRepository.DeleteAsync(id);
 
-            return isSuccess;
+            return isSucceeded;
         }
 
         private void ValidateBook(IEnumerable<AuthorModel> authorModels, IEnumerable<CategoryModel> categoryModels)
@@ -80,9 +80,9 @@ namespace Store.Business.Services
                 throw new Exception($"Parameter {typeof(Category)} {nameof(Category.Id)} is not valid");
         }
 
-        private bool ValidateIds(IEnumerable<int> Ids)
+        private bool ValidateIds(IEnumerable<int> ids)
         {
-            if (Ids.Any(id => id <= 0))
+            if (ids.Any(id => id <= 0))
                 return false;
 
             return true;
