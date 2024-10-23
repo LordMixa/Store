@@ -1,4 +1,5 @@
 using Store.Api.MapperConfigurations;
+using Store.Api.Middlwares;
 
 namespace Store.Api
 {
@@ -28,6 +29,8 @@ namespace Store.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseMiddleware<ExceptionMiddlware>();
 
             app.UseHttpsRedirection();
 
