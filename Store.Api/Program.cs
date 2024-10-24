@@ -21,6 +21,7 @@ namespace Store.Api
             string connectionString = builder.Configuration.GetConnectionString("StoreDB");
 
             Business.Configuration.Configure(builder.Services, connectionString);
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -31,6 +32,8 @@ namespace Store.Api
             }
 
             app.UseMiddleware<ExceptionMiddlware>();
+
+            app.UseMiddleware<AuditLogMiddlware>();
 
             app.UseHttpsRedirection();
 

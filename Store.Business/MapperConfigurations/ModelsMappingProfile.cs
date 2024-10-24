@@ -7,6 +7,7 @@ using Store.Business.Models.Categories;
 using Store.Business.Models.Authors;
 using Store.Business.Models.BookDetails;
 using Store.Entities.Entities;
+using Store.Business.Models.AuditLogs;
 
 namespace Store.Business.MapperConfigurations
 {
@@ -26,6 +27,8 @@ namespace Store.Business.MapperConfigurations
             CreateMap<BookUpdateModel, Book>();
 
             CreateMap<OrderCreateModel, Order>();
+
+            CreateMap<AuditLogCreateModel, AuditLog>();
         }
     }
 }

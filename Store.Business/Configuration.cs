@@ -15,6 +15,7 @@ namespace Store.Business
 
             //serviceCollection.AddTransient<IOrderService, OrderService>();
             serviceCollection.AddTransient<IBookService, BookService>();
+            serviceCollection.AddTransient<IAuditLogService, AuditLogService>();
         }
     }
 }
