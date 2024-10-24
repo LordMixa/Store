@@ -14,58 +14,52 @@ namespace Store.Data.Dapper.Repositories
 
         public async Task<Book?> GetAsync(int id)
         {
-            using (_sqlConnection)
+            var parameters = new { @Id = id };
+
+            var booksDictionary = new Dictionary<int, Book>();
+
+            await _sqlConnection.QueryAsync<Book, Author, Category, Book>(
+            "Procedure_GetBookById",
+            (book, author, category) =>
             {
-                var parameters = new { @Id = id };
 
-                var booksDictionary = new Dictionary<int, Book>();
-
-                await _sqlConnection.QueryAsync<Book, Author, Category, Book>(
-                "Procedure_GetBookById",
-                (book, author, category) =>
+                if (booksDictionary.TryGetValue(book.Id, out var existingBook))
                 {
+                    book = existingBook;
+                }
+                else
+                {
+                    booksDictionary.Add(book.Id, book);
+                }
 
-                      if (booksDictionary.TryGetValue(book.Id, out var existingBook))
-                      {
-                          book = existingBook;
-                      }
-                      else
-                      {
-                          booksDictionary.Add(book.Id, book);
-                      }
+                if (author != null && !book.Authors.Any(a => a.Id == author.Id))
+                {
+                    book.Authors.Add(author);
+                }
+                if (category != null && !book.Categories.Any(c => c.Id == category.Id))
+                {
+                    book.Categories.Add(category);
+                }
 
-                      if (author != null && !book.Authors.Any(a => a.Id == author.Id))
-                      {
-                          book.Authors.Add(author);
-                      }
-                      if (category != null && !book.Categories.Any(c => c.Id == category.Id))
-                      {
-                          book.Categories.Add(category);
-                      }
+                return book;
+            },
+            parameters,
+            splitOn: "AuthorId,CategoryId",
+            commandType: CommandType.StoredProcedure
+            );
 
-                      return book;
-                },
-                parameters,
-                splitOn: "AuthorId,CategoryId",
-                commandType: CommandType.StoredProcedure
-                );
+            var bookTryGetBool = booksDictionary.TryGetValue(id, out var bookResponse);
 
-                var bookTryGetBool = booksDictionary.TryGetValue(id, out var bookResponse);
-
-                return bookResponse;
-            }
+            return bookResponse;
         }
 
         public async Task<IEnumerable<BookDto>?> GetAsync()
         {
-            using (_sqlConnection)
-            {
-                var books = await _sqlConnection.QueryAsync<BookDto>(
-                "Procedure_GetAllBooks",
-                commandType: CommandType.StoredProcedure);
+            var books = await _sqlConnection.QueryAsync<BookDto>(
+            "Procedure_GetAllBooks",
+            commandType: CommandType.StoredProcedure);
 
-                return books;
-            }
+            return books;
         }
 
         public async Task<int> CreateAsync(Book book)
@@ -76,26 +70,23 @@ namespace Store.Data.Dapper.Repositories
             var authors = CreateEntityIdsTable(authorIds);
             var categories = CreateEntityIdsTable(categoryIds);
 
-            using (_sqlConnection)
+            var parameters = new
             {
-                var parameters = new 
-                { 
-                    book.Title, 
-                    book.Description, 
-                    book.Price, 
-                    book.DateOfPublication, 
-                    @AuthorIds = authors, 
-                    @CategoryIds = categories 
-                };
+                book.Title,
+                book.Description,
+                book.Price,
+                book.DateOfPublication,
+                @AuthorIds = authors,
+                @CategoryIds = categories
+            };
 
-                int id = await _sqlConnection.QuerySingleOrDefaultAsync<int>(
-                "Procedure_CreateBook",
-                parameters,
-                commandType: CommandType.StoredProcedure
-                );
+            int id = await _sqlConnection.QuerySingleOrDefaultAsync<int>(
+            "Procedure_CreateBook",
+            parameters,
+            commandType: CommandType.StoredProcedure
+            );
 
-                return id;
-            }
+            return id;
         }
 
         public async Task<bool> UpdateAsync(Book book)
@@ -106,42 +97,36 @@ namespace Store.Data.Dapper.Repositories
             var authors = CreateEntityIdsTable(authorIds);
             var categories = CreateEntityIdsTable(categoryIds);
 
-            using (_sqlConnection)
+            var parameters = new
             {
-                var parameters = new
-                {
-                    book.Id,
-                    book.Title,
-                    book.Description,
-                    book.Price,
-                    book.DateOfPublication,
-                    @AuthorIds = authors,
-                    @CategoryIds = categories
-                };
+                book.Id,
+                book.Title,
+                book.Description,
+                book.Price,
+                book.DateOfPublication,
+                @AuthorIds = authors,
+                @CategoryIds = categories
+            };
 
-                bool isSucceeded = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
-                "Procedure_UpdateBook",
-                parameters,
-                commandType: CommandType.StoredProcedure
-                );
+            bool isSucceeded = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
+            "Procedure_UpdateBook",
+            parameters,
+            commandType: CommandType.StoredProcedure
+            );
 
-                return isSucceeded;
-            }
+            return isSucceeded;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            using (_sqlConnection)
-            {
-                var parameters = new { @Id = id };
+            var parameters = new { @Id = id };
 
-                var isSucceeded = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
-                "Procedure_DeleteBook",
-                parameters,
-                commandType: CommandType.StoredProcedure);
+            var isSucceeded = await _sqlConnection.QuerySingleOrDefaultAsync<bool>(
+            "Procedure_DeleteBook",
+            parameters,
+            commandType: CommandType.StoredProcedure);
 
-                return isSucceeded;
-            }
+            return isSucceeded;
         }
 
         private DataTable CreateEntityIdsTable(IEnumerable<int> ids)

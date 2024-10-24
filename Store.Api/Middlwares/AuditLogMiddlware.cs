@@ -7,6 +7,7 @@ namespace Store.Api.Middlwares
     {
         private readonly RequestDelegate _next;
         private readonly IAuditLogService _auditLogService;
+
         public AuditLogMiddlware(RequestDelegate next, IAuditLogService auditLogService)
         {
             _next = next;
