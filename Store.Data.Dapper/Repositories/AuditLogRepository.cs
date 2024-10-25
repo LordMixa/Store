@@ -11,7 +11,7 @@ namespace Store.Data.Dapper.Repositories
         {
         }
 
-        public async Task<int> CreateAsync(AuditLog auditLog)
+        public async Task CreateAsync(AuditLog auditLog)
         {
             var parameters = new
             {
@@ -22,13 +22,11 @@ namespace Store.Data.Dapper.Repositories
                 auditLog.Response
             };
 
-            int id = await _sqlConnection.QuerySingleOrDefaultAsync<int>(
+            await _sqlConnection.ExecuteAsync(
             "Procedure_CreateAuditLog",
             parameters,
             commandType: CommandType.StoredProcedure
             );
-
-            return id;
         }
     }
 }

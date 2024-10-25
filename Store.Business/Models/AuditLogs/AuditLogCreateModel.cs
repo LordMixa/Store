@@ -1,4 +1,6 @@
-﻿namespace Store.Business.Models.AuditLogs
+﻿using System.Reflection;
+
+namespace Store.Business.Models.AuditLogs
 {
     public class AuditLogCreateModel
     {

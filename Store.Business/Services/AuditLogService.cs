@@ -17,13 +17,11 @@ namespace Store.Business.Services
             _auditLogRepository = auditLogRepository;
         }
 
-        public async Task<int> CreateAsync(AuditLogCreateModel auditLogModel)
+        public async Task CreateAsync(AuditLogCreateModel auditLogModel)
         {
             var auditLog = _mapper.Map<AuditLog>(auditLogModel);
 
-            var id = await _auditLogRepository.CreateAsync(auditLog);
-
-            return id;
+            await _auditLogRepository.CreateAsync(auditLog);
         }
     }
 }

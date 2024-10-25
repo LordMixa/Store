@@ -1,4 +1,5 @@
-﻿using Store.Business.Models.AuditLogs;
+﻿using Store.Business.Extensions;
+using Store.Business.Models.AuditLogs;
 using Store.Business.Services.Interfaces;
 
 namespace Store.Api.Middlwares
@@ -16,23 +17,33 @@ namespace Store.Api.Middlwares
 
         public async Task InvokeAsync(HttpContext context)
         {
-            await _next(context);
+            var auditLogModel = new AuditLogCreateModel();
 
-            await AuditAsync(context);
+            auditLogModel.HttpMethod = context.Request.Method;
+            auditLogModel.Request = await context.GetBody();
+            auditLogModel.Url = context.Request.Path;
+
+            var originalBodyStream = context.Response.Body;
+
+            using (var responseBodyStream = new MemoryStream())
+            {
+                context.Response.Body = responseBodyStream;
+
+                await _next(context);
+
+                auditLogModel.StatusCode = context.Response.StatusCode;
+
+                auditLogModel.Response = await context.GetResponse();
+
+                await responseBodyStream.CopyToAsync(originalBodyStream);
+
+                await AuditAsync(auditLogModel);
+            }
         }
 
-        private async Task AuditAsync(HttpContext context)
+        private async Task AuditAsync(AuditLogCreateModel auditLogModel)
         {
-            var auditLogModel = new AuditLogCreateModel()
-            {
-                HttpMethod = "Test method4",
-                Request = "TestRequest3",
-                Url = "htt3p",
-                StatusCode = 203,
-                Response = "TestResponse3"
-            };
-
-            int id = await _auditLogService.CreateAsync(auditLogModel);
+            await _auditLogService.CreateAsync(auditLogModel);
         }
     }
 }
