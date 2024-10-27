@@ -13,16 +13,19 @@ namespace Store.Business.Services
     {
         private readonly IMapper _mapper;
         private readonly IBookRepository _bookRepository;
+        private readonly IRetryPolicyService _retryPolicyService;
 
-        public BookService(IMapper mapper, IBookRepository bookRepository)
+        public BookService(IMapper mapper, IBookRepository bookRepository, IRetryPolicyService retryPolicyService)
         {
             _mapper = mapper;
             _bookRepository = bookRepository;
+            _retryPolicyService = retryPolicyService;
         }
 
         public async Task<BookModel> GetAsync(int id)
         {
-            var book = await _bookRepository.GetAsync(id);
+            var book = await _retryPolicyService.ExecuteAsync(() => _bookRepository.GetAsync(id));
+
             var bookModel = _mapper.Map<BookModel>(book);
 
             return bookModel;
@@ -30,7 +33,8 @@ namespace Store.Business.Services
 
         public async Task<IEnumerable<BookModel>> GetAsync()
         {
-            var bookDtos = await _bookRepository.GetAsync();
+            var bookDtos = await _retryPolicyService.ExecuteAsync(_bookRepository.GetAsync);
+
             var bookModels = DtoMapToModel(bookDtos);
 
             return bookModels;
@@ -42,7 +46,7 @@ namespace Store.Business.Services
 
             var book = _mapper.Map<Book>(bookModel);
 
-            var id = await _bookRepository.CreateAsync(book);
+            var id = await _retryPolicyService.ExecuteAsync(() => _bookRepository.CreateAsync(book));
 
             return id;
         }
@@ -53,14 +57,14 @@ namespace Store.Business.Services
 
             var book = _mapper.Map<Book>(bookModel);
 
-            var isSucceeded = await _bookRepository.UpdateAsync(book);
+            var isSucceeded = await _retryPolicyService.ExecuteAsync(() => _bookRepository.UpdateAsync(book));
 
             return isSucceeded;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var isSucceeded = await _bookRepository.DeleteAsync(id);
+            var isSucceeded = await _retryPolicyService.ExecuteAsync(() => _bookRepository.DeleteAsync(id));
 
             return isSucceeded;
         }
