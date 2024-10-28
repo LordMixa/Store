@@ -36,5 +36,7 @@ namespace Store.Business.Services
         }
 
         public Task<TResult> ExecuteAsync<TResult>(Func<Task<TResult>> operation) => _retryPolicy.ExecuteAsync(operation);
+
+        public Task ExecuteAsync<TResult>(Func<Task> operation) => _retryPolicy.ExecuteAsync(operation);
     }
 }
