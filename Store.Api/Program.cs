@@ -15,8 +15,8 @@ namespace Store.Api
 			{
 				options.AddPolicy("AllowBlazorApp", policy =>
 				{
-					policy.WithOrigins("https://localhost:7185")
-						  .AllowAnyMethod()
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
 						  .AllowAnyHeader();
 				});
 			});
