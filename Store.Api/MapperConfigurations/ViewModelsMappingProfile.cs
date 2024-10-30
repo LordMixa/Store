@@ -41,6 +41,8 @@ namespace Store.Api.MapperConfigurations
                     src.CategoryIds.Select(categoryId => new CategoryModel { Id = categoryId }).ToList()));
 
             CreateMap<OrderCreateRequestModel, OrderCreateModel>();
+
+            CreateMap<AuthorModel, AuthorNameResponseModel>();
         }
     }
 }

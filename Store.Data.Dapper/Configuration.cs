@@ -15,6 +15,8 @@ namespace Store.Data.Dapper
 
             serviceCollection.AddTransient<IBookRepository, BookRepository>();
             serviceCollection.AddTransient<IAuditLogRepository, AuditLogRepository>();
+            serviceCollection.AddTransient<ICategoryRepository, CategoryRepository>();
+            serviceCollection.AddTransient<IAuthorRepository, AuthorRepository>();
 
             FluentMapConfig.Initialize();
         }
