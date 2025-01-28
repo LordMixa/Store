@@ -13,7 +13,7 @@ The main functionality of the project is located in the `src` folder. Here's an 
 
 ## Run app
 
-1. 'cd TeachersOfTommorow.Frontend' - go to the project folder.
-2. 'npm run start' - launch the application. 
+1. `cd TeachersOfTommorow.Frontend` - go to the project folder.
+2. `npm run start` - launch the application. 
 3. Copy path to the application from console(example: 'http://localhost:4200/')
 4. Open path in web browser
